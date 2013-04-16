@@ -41,9 +41,10 @@ class RpcMethods:
 
     @staticmethod
     def call_method(name, *args, **kwargs):
+        if not name in RpcMethods.__advertized_functions:
+            raise(NameError("Function %s() not found!" % name))
+
         method = RpcMethods.__advertized_functions[name]
-        if not method:
-            raise(NameError("Function '%s' not found!"))
         return method[u'function'].__call__(*args, **kwargs)
 
 
