@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import datetime
+import time
 import inspect
 
 from jsonrpclib import Server
@@ -64,6 +64,8 @@ def process_function_calls(calls, server_stub):
             res[u'result'] = RpcMethods.call_method(call[u'name'], *call[u'*args'], **call[u'**kwargs'])
         except Exception, e:
             res[u'error'] = repr(e)
+        #res[u'time'] = str(datetime.utcnow())
+        res[u'time'] = time.strftime("%Y-%m-%d %H:%M:%S+00:00", time.gmtime())
 
         to_be_send.append(res)
 
