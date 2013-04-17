@@ -58,6 +58,11 @@ def advertized_function(version='0.0'):
 
 def process_function_calls(calls, server_stub):
     to_be_send = []
+
+    if not calls:
+        #No need to respond to the server when the calls are empty
+        return "No jobs to perform."
+
     for call in calls:
         res = { u'id': call[u'id'] }
         try:
