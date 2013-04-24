@@ -14,6 +14,7 @@ def parse_syslog(path):
         res[u'dst_port'] = parsed['DPT']
         res[u'src_addr'] = parsed['SRC']
         res[u'dst_addr'] = parsed['DST']
+        res[u'protocol'] = parsed['PROTO']
         return res
 
     res = []
