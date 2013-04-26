@@ -20,7 +20,7 @@ def parse_syslog(path):
     res = []
 
     with open(path) as f:
-        for line in f.readlines():
+        for line in f:
             parsed = parse_line(line)
             if parsed:
                 res.append(parsed)
