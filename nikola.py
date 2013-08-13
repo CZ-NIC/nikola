@@ -25,8 +25,6 @@ if __name__ == '__main__':
                          default='/etc/logrotate.d/nikola', type='string',
                          help='specify the log rotate config to be triggered')
 
-    syslog_date_len = 15
-
     (options, args) = optparser.parse_args()
 
     if len(args) != 2:
@@ -45,7 +43,7 @@ if __name__ == '__main__':
     s = WrappedServer(server_addr, digest)
 
     # Parse syslog
-    parsed = parse_syslog(syslog_file, syslog_date_len, syslog_date_format)
+    parsed = parse_syslog(syslog_file, syslog_date_format)
 
     print "Records parsed: %d" % len(parsed)
     print(parsed[0] if parsed else 'No records')
