@@ -3,8 +3,8 @@
 import optparse
 import os
 
-from rpc_wrapper import WrappedServer
-from syslog_parser import parse_syslog
+from nikola.rpc_wrapper import WrappedServer
+from nikola.syslog_parser import parse_syslog
 
 if __name__ == '__main__':
 

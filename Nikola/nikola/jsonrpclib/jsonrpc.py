@@ -31,7 +31,7 @@ and other things to tie the thing off nicely. :)
 For a quick-start, just open a console and type the following,
 replacing the server address, method, and parameters 
 appropriately.
->>> import jsonrpclib
+>>> from nikola import jsonrpclib
 >>> server = jsonrpclib.Server('http://localhost:8181')
 >>> server.add(5, 6)
 11
@@ -57,9 +57,9 @@ import string
 import random
 
 # Library includes
-import jsonrpclib
-from jsonrpclib import config
-from jsonrpclib import history
+import nikola.jsonrpclib
+from nikola.jsonrpclib import config
+from nikola.jsonrpclib import history
 
 # JSON library importing
 cjson = None
@@ -481,7 +481,7 @@ def dumps(params=[], methodname=None, methodresponse=None,
         raise ValueError('Method name must be a string, or methodresponse '+
                          'must be set to True.')
     if config.use_jsonclass == True:
-        from jsonrpclib import jsonclass
+        from nikola.jsonrpclib import jsonclass
         params = jsonclass.dump(params)
     if methodresponse is True:
         if rpcid is None:
@@ -509,7 +509,7 @@ def loads(data):
     # should return something like the following:
     # { 'jsonrpc':'2.0', 'error': fault.error(), id: None }
     if config.use_jsonclass == True:
-        from jsonrpclib import jsonclass
+        from nikola.jsonrpclib import jsonclass
         result = jsonclass.load(result)
     return result
 

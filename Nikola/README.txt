@@ -1,0 +1,12 @@
+======
+Nikola
+======
+TBD more text
+
+Installation
+============
+TBD
+
+example usage of the executable file::
+
+    nikola http://localhost:8000/router/json/ 0b1da619aa8c025fcc42be1df82938c223843fee8468288fb056311054101f26 -l /var/log/iptables -f '%b %d %H:%M:%S'
