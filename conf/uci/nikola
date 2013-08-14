@@ -1,14 +1,13 @@
 package 'nikola'
 
-config server
+config nikola 'server'
     option address 'http://192.168.58.208:8000/router/json/'
     option digest 0b1da619aa8c025fcc42be1df82938c223843fee8468288fb056311054101f26
     option max_count 1000
 
-config logfile
+config nikola 'logfile'
     option path '/var/log/iptables.1'
-    option date_length 19
     option date_format '%Y-%m-%d %H:%M:%S'
 
-config logrotate
+config nikola 'logrotate'
     option path '/_scripts/logrotate-iptables.conf'
