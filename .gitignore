@@ -1,2 +1,3 @@
-/*.pyc
-/jsonrpclib
+/Nikola/MANIFEST
+/Nikola/dist
+*.pyc
