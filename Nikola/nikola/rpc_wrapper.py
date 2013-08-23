@@ -46,8 +46,8 @@ class WrappedServer(Server):
         if self.server_signature:
 
             # TODO use the chip to calculate next server signature
-            from Crypto.Hash import SHA256
-            self.server_signature = SHA256.new(self.server_signature).digest()
+            import hashlib
+            self.server_signature = hashlib.sha256(self.server_signature).digest()
 
             server_signature = binascii.hexlify(self.server_signature)
             params = (server_signature, ) + params if params else (server_signature, )
@@ -61,8 +61,8 @@ class WrappedServer(Server):
         if self.client_signature:
 
             # TODO use the chip to calculate next client signature
-            from Crypto.Hash import SHA256
-            self.client_signature = SHA256.new(self.client_signature).digest()
+            import hashlib
+            self.client_signature = hashlib.sha256(self.client_signature).digest()
 
             if not binascii.hexlify(self.client_signature) == res.get('server_prove', None):
                 # Server is responded incorrectly -> clear the session
