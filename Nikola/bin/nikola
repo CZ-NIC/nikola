@@ -50,6 +50,8 @@ if __name__ == '__main__':
     if max_packet_count < len(parsed):
         msg = "To many data to send in one batch. (%d/%d)" % (len(parsed), max_packet_count)
         print msg
+        print s.init_session()
         print s.router.report_error(msg)
     else:
+        print s.init_session()
         print s.router.store_logs(parsed)
