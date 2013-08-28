@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import atsha204
 import binascii
 
 from jsonrpclib import Server
@@ -45,9 +46,9 @@ class WrappedServer(Server):
     def _request(self, methodname, params, rpcid=None):
         if self.server_signature:
 
-            # TODO use the chip to calculate next server signature
-            import hashlib
-            self.server_signature = hashlib.sha256(self.server_signature).digest()
+            # TODO use atsha204 without emulation atsha.hmac()
+            self.server_signature = atsha204.emulate_hmac(1, '12345678', '0' * 32,
+                                                          self.server_signature)
 
             server_signature = binascii.hexlify(self.server_signature)
             params = (server_signature, ) + params if params else (server_signature, )
@@ -61,8 +62,8 @@ class WrappedServer(Server):
         if self.client_signature:
 
             # TODO use the chip to calculate next client signature
-            import hashlib
-            self.client_signature = hashlib.sha256(self.client_signature).digest()
+            self.client_signature = atsha204.emulate_hmac(1, '12345678', '0' * 32,
+                                                          self.client_signature)
 
             if not binascii.hexlify(self.client_signature) == res.get('server_prove', None):
                 # Server is responded incorrectly -> clear the session
