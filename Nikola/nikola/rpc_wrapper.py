@@ -46,9 +46,8 @@ class WrappedServer(Server):
     def _request(self, methodname, params, rpcid=None):
         if self.server_signature:
 
-            # TODO use atsha204 without emulation atsha.hmac()
-            self.server_signature = atsha204.emulate_hmac(1, '12345678', '0' * 32,
-                                                          self.server_signature)
+            # calculate next the next server signature
+            self.server_signature = atsha204.hmac(self.server_signature)
 
             server_signature = binascii.hexlify(self.server_signature)
             params = (server_signature, ) + params if params else (server_signature, )
@@ -61,9 +60,8 @@ class WrappedServer(Server):
     def _test_prove_server(self, res):
         if self.client_signature:
 
-            # TODO use the chip to calculate next client signature
-            self.client_signature = atsha204.emulate_hmac(1, '12345678', '0' * 32,
-                                                          self.client_signature)
+            # calculate next the next client signature
+            self.client_signature = atsha204.hmac(self.client_signature)
 
             if not binascii.hexlify(self.client_signature) == res.get('server_prove', None):
                 # Server is responded incorrectly -> clear the session
