@@ -5,49 +5,33 @@ import binascii
 
 from jsonrpclib import Server
 
-RANDOM_LEN = 16
+RANDOM_LEN = 32
+DATE_LEN = 4
 
 
 class WrappedServer(Server):
     def __init__(self, addr, digest):
         self.digest = digest
-        self.client_signature = None
-        self.server_signature = None
+        self.session_key = None
         Server.__init__(self, addr)
 
     def init_session(self):
-        # TODO better random
-        client_random = '\0' * RANDOM_LEN
 
-        res = self.router.init_session(self.digest, binascii.hexlify(client_random))
-        if 'server_random' in res and len(res['server_random']) == 2 * RANDOM_LEN:
-            server_random = binascii.unhexlify(res['server_random'])
-            self.client_signature = client_random + server_random
-            self.server_signature = server_random + client_random
+        res = self.router.init_session(self.digest)
+        if 'random' in res and len(res['random']) == 2 * RANDOM_LEN \
+           and 'timestamp' in res and len(res['timestamp']) == 2 * DATE_LEN:
+            random = binascii.unhexlify(res['random'])
+            timestamp = res['timestamp']
+            self.session_key = timestamp + self.digest[:24] \
+                + binascii.hexlify(atsha204.hmac(random))
 
-        self._test_prove_server(res)
         return res
 
     def _request(self, methodname, params, rpcid=None):
-        if self.server_signature:
+        if self.session_key:
 
-            # calculate next the next server signature
-            self.server_signature = atsha204.hmac(self.server_signature)
-
-            server_signature = binascii.hexlify(self.server_signature)
-            params = (server_signature, ) + params if params else (server_signature, )
+            params = (self.session_key, ) + params if params else (self.session_key, )
 
         res = Server._request(self, methodname, params, rpcid)
-        self._test_prove_server(res)
 
         return res
-
-    def _test_prove_server(self, res):
-        if self.client_signature:
-
-            # calculate next the next client signature
-            self.client_signature = atsha204.hmac(self.client_signature)
-
-            if not binascii.hexlify(self.client_signature) == res.get('server_prove', None):
-                # Server is responded incorrectly -> clear the session
-                self.client_signature = self.server_signature = None
