@@ -5,21 +5,7 @@ import binascii
 
 from jsonrpclib import Server
 
-
-def _mix_randoms(client_random, server_random):
-    """
-    Mix two streams of data (expects both numbers in binary)
-    """
-    if len(server_random) != len(client_random):
-        raise IndexError('Random numbers should have same length')
-
-    length = len(server_random)
-    res = ""
-
-    for i in range(length):
-        res += client_random[i] + server_random[i]
-
-    return res[:length], res[-length:]
+RANDOM_LEN = 16
 
 
 class WrappedServer(Server):
@@ -31,14 +17,13 @@ class WrappedServer(Server):
 
     def init_session(self):
         # TODO better random
-        client_random = '\0' * 32
+        client_random = '\0' * RANDOM_LEN
 
         res = self.router.init_session(self.digest, binascii.hexlify(client_random))
-        if 'server_random' in res:
+        if 'server_random' in res and len(res['server_random']) == 2 * RANDOM_LEN:
             server_random = binascii.unhexlify(res['server_random'])
-            client_random, server_random = _mix_randoms(client_random, server_random)
-            self.client_signature = client_random
-            self.server_signature = server_random
+            self.client_signature = client_random + server_random
+            self.server_signature = server_random + client_random
 
         self._test_prove_server(res)
         return res
