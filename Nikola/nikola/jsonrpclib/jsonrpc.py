@@ -115,8 +115,11 @@ class TransportMixIn(object):
     user_agent = config.user_agent
     # for Python 2.7 support
     _connection = None
+    _cookie = None
 
     def send_content(self, connection, request_body):
+        if self._cookie:
+            connection.putheader("Cookie", self._cookie)
         connection.putheader("Content-Type", "application/json-rpc")
         connection.putheader("Content-Length", str(len(request_body)))
         connection.endheaders()
@@ -126,6 +129,14 @@ class TransportMixIn(object):
     def getparser(self):
         target = JSONTarget()
         return JSONParser(target), target
+
+    @property
+    def cookie(self):
+        return self._cookie
+
+    @cookie.setter
+    def cookie(self, value):
+        self._cookie = value
 
 class JSONParser(object):
     def __init__(self, target):
@@ -263,6 +274,9 @@ class ServerProxy(XMLServerProxy):
         # Just like __getattr__, but with notify namespace.
         return _Notify(self._request_notify)
 
+    @property
+    def transport(self):
+        return self.__transport
 
 class _Method(XML_Method):
     
