@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
+import base64
+import json
 import optparse
 import os
+import zlib
 
 from nikola.rpc_wrapper import WrappedServer
 from nikola.syslog_parser import parse_syslog
@@ -53,5 +56,7 @@ if __name__ == '__main__':
         print s.init_session()
         print s.router.report_error(msg)
     else:
+        # comporess the logs
+        compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
         print s.init_session()
-        print s.router.store_logs(parsed)
+        print s.router.store_logs(compressed)
