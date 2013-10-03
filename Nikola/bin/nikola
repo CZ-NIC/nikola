@@ -54,9 +54,9 @@ if __name__ == '__main__':
         msg = "To many data to send in one batch. (%d/%d)" % (len(parsed), max_packet_count)
         print msg
         print s.init_session()
-        print s.router.report_error(msg)
+        print s.collector.report_error(msg)
     else:
         # comporess the logs
         compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
         print s.init_session()
-        print s.router.store_logs(compressed)
+        print s.collector.firewall.store_logs(compressed)
