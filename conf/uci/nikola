@@ -1,7 +1,7 @@
 package 'nikola'
 
 config nikola 'server'
-    option address 'http://192.168.58.208:8080/'
+    option address 'http://192.168.1.208:8080/'
     option max_count 1000
 
 config nikola 'logfile'
@@ -9,4 +9,4 @@ config nikola 'logfile'
     option date_format '%Y-%m-%d %H:%M:%S'
 
 config nikola 'logrotate'
-    option path '/etc/logrotate.d/nikola'
+    option path '/etc/logrotate.d/iptables'
