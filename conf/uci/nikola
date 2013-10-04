@@ -6,7 +6,7 @@ config nikola 'server'
 
 config nikola 'logfile'
     option path '/var/log/iptables.1'
-    option date_format '%Y-%m-%d %H:%M:%S'
+    option date_format '%Y-%m-%dT%H:%M:%S'
 
 config nikola 'logrotate'
     option path '/etc/logrotate.d/iptables'
