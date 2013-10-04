@@ -16,7 +16,6 @@ get_parameter() {
 
 
 server_addr=$(get_parameter server address)
-digest=$(get_parameter server digest)
 max_count=$(get_parameter server max_count)
 
 log_file=$(get_parameter logfile path)
@@ -38,4 +37,4 @@ if [ -n "$log_rotate_conf" ]; then
     optional="$optional -r '$log_rotate_conf'"
 fi
 
-eval nikola "$server_addr" "$digest" "$optional"
+eval nikola "$server_addr" "$optional"

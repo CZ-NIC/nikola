@@ -1,8 +1,7 @@
 package 'nikola'
 
 config nikola 'server'
-    option address 'http://192.168.58.208:8000/router/json/'
-    option digest 0b1da619aa8c025fcc42be1df82938c223843fee8468288fb056311054101f26
+    option address 'http://192.168.58.208:8080/'
     option max_count 1000
 
 config nikola 'logfile'
