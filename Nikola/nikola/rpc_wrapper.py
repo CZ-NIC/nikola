@@ -16,7 +16,7 @@ class WrappedServer(Server):
 
     def init_session(self):
 
-        res = self.collector.init_session(self.serial)
+        res = self.api_turris_cz.init_session(self.serial)
         if 'random' in res and len(res['random']) == 2 * RANDOM_LEN \
            and 'timestamp' in res and len(res['timestamp']) == 2 * DATE_LEN:
             random = binascii.unhexlify(res['random'])
