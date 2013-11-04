@@ -1,4 +1,6 @@
 #!/usr/bin/python
+import re
+
 from datetime import datetime
 
 
@@ -18,10 +20,16 @@ def _parse_time_datetime(line, format, **kwargs):
 
         rest = line[len(line) - unmatched_len:]
 
+        # try to parse timezone in format +02:00
+        timezone = rest[:6] if re.match(r'[+-][0-9]{2}:[0-9]{2}', rest) else ''
+
+        # remove ':'
+        timezone = timezone.replace(':', '')
+
     if kwargs:
         time = time.replace(**kwargs)
 
-    return time.strftime('%Y-%m-%d %H:%M:%S'), rest
+    return time.strftime('%Y-%m-%d %H:%M:%S' + timezone), rest
 
 
 def _parse_line(line, date_format, **kwargs):
