@@ -9,7 +9,6 @@ def get_logger(debug=False):
 
     # add syslog handler
     sys_handler = logging.handlers.SysLogHandler(address="/dev/log")
-    sys_handler.setFormatter(logging.Formatter('%(module)s: %(levelname)s %(message)s'))
     logger.addHandler(sys_handler)
 
     # add console handler
