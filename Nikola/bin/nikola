@@ -3,11 +3,13 @@
 import base64
 import json
 import optparse
-import os
+import subprocess
 import zlib
 
+from nikola.logger import get_logger
 from nikola.rpc_wrapper import WrappedServer
 from nikola.syslog_parser import parse_syslog
+
 
 if __name__ == '__main__':
 
@@ -28,10 +30,15 @@ if __name__ == '__main__':
                          default='/etc/logrotate.d/nikola', type='string',
                          help='specify the log rotate config to be triggered')
 
+    optparser.add_option("-d", "--debug", dest='debug', action='store_true',
+                         default=False, help='use debug output')
+
     (options, args) = optparser.parse_args()
 
     if len(args) != 1:
         optparser.error("incorrect number of arguments")
+
+    logger = get_logger(options.debug)
 
     server_addr = args[0]
     syslog_file = options.syslog_file
@@ -39,23 +46,29 @@ if __name__ == '__main__':
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
 
-    #logrotete the logs
-    os.system('logrotate "%s"' % logrotate_conf)
+    try:
 
-    s = WrappedServer(server_addr)
+        #logrotete the logs
+        subprocess.check_output(('logrotate', logrotate_conf, ), shell=True)
 
-    # Parse syslog
-    parsed = parse_syslog(syslog_file, syslog_date_format)
+        s = WrappedServer(server_addr)
 
-    print "Records parsed: %d" % len(parsed)
-    print(parsed[0] if parsed else 'No records')
-    if max_packet_count < len(parsed):
-        msg = "To many data to send in one batch. (%d/%d)" % (len(parsed), max_packet_count)
-        print msg
-        print s.init_session()
-        print s.api_turris_cz.report_error(msg)
-    else:
-        # comporess the logs
-        compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
-        print s.init_session()
-        print s.api_turris_cz.firewall.store_logs(compressed)
+        # Parse syslog
+        parsed = parse_syslog(syslog_file, syslog_date_format)
+
+        logger.info("Records parsed: %d", len(parsed))
+        logger.debug("First record: %s", parsed[0] if parsed else 'No records')
+        if max_packet_count < len(parsed):
+            msg = "To many data to send in one batch. (%d/%d)" % (len(parsed),
+                                                                  max_packet_count)
+            logger.error(msg)
+            logger.debug(s.init_session())
+            logger.debug(s.api_turris_cz.report_error(msg))
+        else:
+            # comporess the logs
+            compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
+            logger.debug(s.init_session())
+            logger.info(s.api_turris_cz.firewall.store_logs(compressed))
+
+    except Exception, e:
+        logger.error("Exception thrown: %s", e)

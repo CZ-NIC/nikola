@@ -1,5 +1,8 @@
 package 'nikola'
 
+config nikola 'main'
+    option debug false
+
 config nikola 'server'
     option address 'https://api.turris.cz/fw'
     option max_count 1000
