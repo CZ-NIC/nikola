@@ -49,7 +49,10 @@ if __name__ == '__main__':
     try:
 
         #logrotete the logs
-        subprocess.check_output(('logrotate', logrotate_conf, ), shell=True)
+        output = subprocess.check_output(
+            ('/usr/sbin/logrotate', '-s', '/tmp/logrotate.status', logrotate_conf, )
+        )
+        logger.debug("logrotate output: %s", output)
 
         s = WrappedServer(server_addr)
 
