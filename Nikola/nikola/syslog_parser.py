@@ -52,8 +52,13 @@ def _parse_line(line, date_format, **kwargs):
             key, val = x.split('=', 1)
             parsed[key] = val
 
-    return date, "%s|%s|%s|%s|%s" % (parsed['SRC'], parsed['SPT'], parsed['DST'], parsed['DPT'],
-                                     parsed['PROTO'])
+    return date, "%s|%s|%s|%s|%s" % (
+        parsed.get('SRC', ''),
+        parsed.get('SPT', ''),
+        parsed.get('DST', ''),
+        parsed.get('DPT', ''),
+        parsed['PROTO']
+    )
 
 
 def parse_syslog(path, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
