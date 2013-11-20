@@ -1,7 +1,26 @@
+# Nikola - firewall log sender (a part of www.turris.cz project)
+# Copyright (C) Josh Marshall 2013 <catchjosh@gmail.com>
+# Copyright (C) 2013 CZ.NIC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+#
+
+
 import types
 import inspect
 import re
-import traceback
 
 from nikola.jsonrpclib import config
 
@@ -27,11 +46,13 @@ value_types = [
     types.NoneType
 ]
 
-supported_types = iter_types+string_types+numeric_types+value_types
+supported_types = iter_types + string_types + numeric_types + value_types
 invalid_module_chars = r'[^a-zA-Z0-9\_\.]'
+
 
 class TranslationError(Exception):
     pass
+
 
 def dump(obj, serialize_method=None, ignore_attribute=None, ignore=[]):
     if not serialize_method:
@@ -40,14 +61,13 @@ def dump(obj, serialize_method=None, ignore_attribute=None, ignore=[]):
         ignore_attribute = config.ignore_attribute
     obj_type = type(obj)
     # Parse / return default "types"...
-    if obj_type in numeric_types+string_types+value_types:
+    if obj_type in numeric_types + string_types+value_types:
         return obj
     if obj_type in iter_types:
         if obj_type in (types.ListType, types.TupleType):
             new_obj = []
             for item in obj:
-                new_obj.append(dump(item, serialize_method,
-                                     ignore_attribute, ignore))
+                new_obj.append(dump(item, serialize_method, ignore_attribute, ignore))
             if obj_type is types.TupleType:
                 new_obj = tuple(new_obj)
             return new_obj
@@ -55,8 +75,7 @@ def dump(obj, serialize_method=None, ignore_attribute=None, ignore=[]):
         else:
             new_obj = {}
             for key, value in obj.iteritems():
-                new_obj[key] = dump(value, serialize_method,
-                                     ignore_attribute, ignore)
+                new_obj[key] = dump(value, serialize_method, ignore_attribute, ignore)
             return new_obj
     # It's not a standard type, so it needs __jsonclass__
     module_name = inspect.getmodule(obj).__name__
@@ -64,7 +83,7 @@ def dump(obj, serialize_method=None, ignore_attribute=None, ignore=[]):
     json_class = class_name
     if module_name not in ['', '__main__']:
         json_class = '%s.%s' % (module_name, json_class)
-    return_obj = {"__jsonclass__":[json_class,]}
+    return_obj = {"__jsonclass__": [json_class, ]}
     # If a serialization method is defined..
     if serialize_method in dir(obj):
         # Params can be a dict (keyword) or list (positional)
@@ -79,18 +98,18 @@ def dump(obj, serialize_method=None, ignore_attribute=None, ignore=[]):
     # parameters passed to __init__
     return_obj['__jsonclass__'].append([])
     attrs = {}
-    ignore_list = getattr(obj, ignore_attribute, [])+ignore
+    ignore_list = getattr(obj, ignore_attribute, []) + ignore
     for attr_name, attr_value in obj.__dict__.iteritems():
         if type(attr_value) in supported_types and \
                 attr_name not in ignore_list and \
                 attr_value not in ignore_list:
-            attrs[attr_name] = dump(attr_value, serialize_method,
-                                     ignore_attribute, ignore)
+            attrs[attr_name] = dump(attr_value, serialize_method, ignore_attribute, ignore)
     return_obj.update(attrs)
     return return_obj
 
+
 def load(obj):
-    if type(obj) in string_types+numeric_types+value_types:
+    if type(obj) in string_types + numeric_types + value_types:
         return obj
     if type(obj) is types.ListType:
         return_list = []

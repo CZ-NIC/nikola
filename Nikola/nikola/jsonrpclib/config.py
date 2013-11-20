@@ -1,21 +1,42 @@
+# Nikola - firewall log sender (a part of www.turris.cz project)
+# Copyright (C) Josh Marshall 2013 <catchjosh@gmail.com>
+# Copyright (C) 2013 CZ.NIC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+#
+
 import sys
+
 
 class LocalClasses(dict):
     def add(self, cls):
         self[cls.__name__] = cls
 
+
 class Config(object):
     """
-    This is pretty much used exclusively for the 'jsonclass' 
-    functionality... set use_jsonclass to False to turn it off.
+    This is pretty much used exclusively for the 'jsonclass'
+    functionality... set use_jsonclass to False to turn it off
     You can change serialize_method and ignore_attribute, or use
-    the local_classes.add(class) to include "local" classes.
+    the local_classes.add(class) to include "local" classes
     """
     use_jsonclass = True
     # Change to False to keep __jsonclass__ entries raw.
     serialize_method = '_serialize'
     # The serialize_method should be a string that references the
-    # method on a custom class object which is responsible for 
+    # method on a custom class object which is responsible for
     # returning a tuple of the constructor arguments and a dict of
     # attributes.
     ignore_attribute = '_ignore'
@@ -30,7 +51,7 @@ class Config(object):
         '.'.join([str(ver) for ver in sys.version_info[0:3]])
     # User agent to use for calls.
     _instance = None
-    
+
     @classmethod
     def instance(cls):
         if not cls._instance:
