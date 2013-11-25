@@ -22,24 +22,24 @@ import binascii
 from jsonrpclib import Server
 
 RANDOM_LEN = 32
-DATE_LEN = 4
 
 
 class WrappedServer(Server):
     def __init__(self, addr, serial=None):
         self.serial = binascii.hexlify(serial if serial else atsha204.get_serial())
+        self.challenge = None
+        self.response = None
+        self.session_id = None
         Server.__init__(self, addr)
 
     def init_session(self):
 
         res = self.api_turris_cz.init_session(self.serial)
-        if 'random' in res and len(res['random']) == 2 * RANDOM_LEN \
-           and 'timestamp' in res and len(res['timestamp']) == 2 * DATE_LEN:
-            random = binascii.unhexlify(res['random'])
-            timestamp = res['timestamp']
-            session_key = timestamp + self.serial[:24] \
-                + binascii.hexlify(atsha204.hmac(random))
-            self._set_cookie('sessionid="%s"' % session_key)
+        if 'random' in res and len(res['random']) == 2 * RANDOM_LEN:
+            self.challenge = res['random']
+            self.session_id = res['session_id']
+            self.response = binascii.hexlify(atsha204.hmac(binascii.unhexlify(self.challenge)))
+            self._set_cookie('sessionid="%s" response="%s"' % (self.session_id, self.response))
 
         return res
 
