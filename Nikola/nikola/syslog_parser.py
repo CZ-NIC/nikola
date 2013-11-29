@@ -1,5 +1,5 @@
 # Nikola - firewall log sender (a part of www.turris.cz project)
-# Copyright (C) 2013 CZ.NIC
+# Copyright (C) 2013 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

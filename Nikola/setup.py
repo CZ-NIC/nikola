@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Nikola - firewall log sender (a part of www.turris.cz project)
-# Copyright (C) 2013 CZ.NIC
+# Copyright (C) 2013 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@ from distutils.core import setup
 setup(
     name='Nikola',
     version='0.1',
-    author='CZ.NIC s.z.p.o.',
+    author='CZ.NIC, z.s.p.o. (http://www.nic.cz/)',
     author_email='stepan.henek@nic.cz',
     packages=['nikola', 'nikola.jsonrpclib', ],
     scripts=['bin/nikola', ],
-    url='http://pypi.python.org/pypi/Nikola-CZNIC/',
+    url='https://gitlab.labs.nic.cz/router/nikola',
     license='LICENSE.txt',
     description='Nikola package for opewrt routers',
     long_description=open('README.txt').read(),
