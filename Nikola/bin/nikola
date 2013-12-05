@@ -22,6 +22,7 @@
 import base64
 import json
 import optparse
+import os
 import subprocess
 import zlib
 
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     # Parse the command line options
     optparser = optparse.OptionParser("usage: %prog [options] server_addr")
     optparser.add_option("-l", "--log-file", dest='syslog_file',
-                         default='/var/log/iptables.1', type='string',
+                         default='/var/log/iptables', type='string',
                          help='specify the syslog file to be parsed')
 
     optparser.add_option("-m", "--max", dest='max', default=1000, type='int',
@@ -67,16 +68,21 @@ if __name__ == '__main__':
 
     try:
 
-        #logrotete the logs
-        output = subprocess.check_output(
-            ('/usr/sbin/logrotate', '-s', '/tmp/logrotate.status', logrotate_conf, )
-        )
-        logger.debug(("logrotate output: %s" % output))
+        server = WrappedServer(server_addr)
 
-        s = WrappedServer(server_addr)
+        if os.path.exists(syslog_file):
+            # Parse syslog
+            parsed = parse_syslog(syslog_file, syslog_date_format)
 
-        # Parse syslog
-        parsed = parse_syslog(syslog_file, syslog_date_format)
+            #logrotete the logs
+            output = subprocess.check_output(
+                ('/usr/sbin/logrotate', '-s', '/tmp/logrotate-nikola.state', logrotate_conf, )
+            )
+            logger.debug(("logrotate output: %s" % output))
+
+        else:
+            # To file to parse means no records
+            parsed = []
 
         logger.info(("Records parsed: %d" % len(parsed)))
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
@@ -84,13 +90,13 @@ if __name__ == '__main__':
             msg = "To many data to send in one batch. (%d/%d)" % (len(parsed),
                                                                   max_packet_count)
             logger.error(msg)
-            logger.debug(s.init_session())
-            logger.debug(s.api_turris_cz.report_error(msg))
+            logger.debug(server.init_session())
+            logger.debug(server.api_turris_cz.report_error(msg))
         else:
             # comporess the logs
             compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
-            logger.debug(s.init_session())
-            logger.info(s.api_turris_cz.firewall.store_logs(compressed))
+            logger.debug(server.init_session())
+            logger.info(server.api_turris_cz.firewall.store_logs(compressed))
 
     except Exception, e:
         logger.error(("Exception thrown: %s" % e))

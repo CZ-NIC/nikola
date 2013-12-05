@@ -8,7 +8,7 @@ config nikola 'server'
     option max_count 1000
 
 config nikola 'logfile'
-    option path '/var/log/iptables.1'
+    option path '/var/log/iptables'
     option date_format '%Y-%m-%dT%H:%M:%S'
 
 config nikola 'logrotate'
