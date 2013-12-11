@@ -31,6 +31,10 @@ setup(
     license='LICENSE.txt',
     description='Nikola package for opewrt routers',
     long_description=open('README.txt').read(),
-    install_requires=[
+    requires=[
+        'atsha204'
+    ],
+    provides=[
+        'nikola'
     ],
 )
