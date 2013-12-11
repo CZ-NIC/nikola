@@ -82,6 +82,7 @@ if __name__ == '__main__':
                 wan = subprocess.check_output(('uci', 'get', 'network.wan.ifname')).strip()
             except (subprocess.CalledProcessError, OSError):
                 wan = None
+                logger.warning('Could not recognize wan device!')
 
         if os.path.exists(syslog_file) and wan:
             # Parse syslog
