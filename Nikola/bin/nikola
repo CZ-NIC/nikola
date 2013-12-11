@@ -53,6 +53,10 @@ if __name__ == '__main__':
     optparser.add_option("-d", "--debug", dest='debug', action='store_true',
                          default=False, help='use debug output')
 
+    optparser.add_option("-w", "--wan-interface", dest='wan',
+                         default=None, type='string',
+                         help='specify the wan interface')
+
     (options, args) = optparser.parse_args()
 
     if len(args) != 1:
@@ -65,14 +69,23 @@ if __name__ == '__main__':
     max_packet_count = options.max
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
+    wan = options.wan
 
     try:
 
         server = WrappedServer(server_addr)
 
-        if os.path.exists(syslog_file):
+        if not wan:
+
+            # Get the wan interface using uci
+            try:
+                wan = subprocess.check_output(('uci', 'get', 'network.wan.ifname')).strip()
+            except (subprocess.CalledProcessError, OSError):
+                wan = None
+
+        if os.path.exists(syslog_file) and wan:
             # Parse syslog
-            parsed = parse_syslog(syslog_file, syslog_date_format)
+            parsed = parse_syslog(syslog_file, wan, syslog_date_format)
 
             #logrotete the logs
             output = subprocess.check_output(
