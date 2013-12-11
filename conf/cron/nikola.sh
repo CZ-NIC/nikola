@@ -50,6 +50,10 @@ log_rotate_conf=$(get_parameter logrotate path)
 
 debug=$(get_bool_parameter main debug 0)
 
+config_load network
+
+wan=$(get_parameter wan ifname)
+
 optional=""
 if [ -n "$max_count" ]; then
     optional="$optional -m '$max_count'"
@@ -63,7 +67,9 @@ fi
 if [ -n "$log_rotate_conf" ]; then
     optional="$optional -r '$log_rotate_conf'"
 fi
-
+if [ -n "$wan" = 1 ]; then
+    optional="$optional -w $wan"
+fi
 if [ "$debug" = 1 ]; then
     optional="$optional -d"
 fi
