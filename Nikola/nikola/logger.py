@@ -30,7 +30,7 @@ def get_logger(debug=False):
     sys_handler = logging.handlers.SysLogHandler(address="/dev/log")
 
     # set logging format
-    sys_handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s %(msg)s'))
+    sys_handler.setFormatter(logging.Formatter('%(name)s: %(msg)s'))
     logger.addHandler(sys_handler)
 
     # add console handler
