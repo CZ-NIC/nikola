@@ -67,7 +67,7 @@ fi
 if [ -n "$log_rotate_conf" ]; then
     optional="$optional -r '$log_rotate_conf'"
 fi
-if [ -n "$wan" = 1 ]; then
+if [ -n "$wan" ]; then
     optional="$optional -w $wan"
 fi
 if [ "$debug" = 1 ]; then
