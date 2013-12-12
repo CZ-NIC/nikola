@@ -61,6 +61,13 @@ def _parse_line(line, wan, date_format, **kwargs):
     splitted = rest.split(': ', 1)
     if len(splitted) != 2:
         return None
+    prefix = splitted[0].rsplit(' ', 1)[1]
+
+    # prefix should look like turris[-1A5B7D]:
+    if not 'turris' in prefix:
+        # don't send other logged packets
+        return None
+    rule_id = prefix.rsplit('-', 1)[1] if '-' in prefix else ''
 
     # Parse the rest
     parsed = {}
@@ -83,12 +90,13 @@ def _parse_line(line, wan, date_format, **kwargs):
     else:
         return None
 
-    return date, "%s|%s|%s|%s|%s" % (
+    return date, "%s|%s|%s|%s|%s|%s" % (
         direction,
         addr,
         rport,
         lport,
-        parsed['PROTO']
+        parsed['PROTO'],
+        rule_id,
     )
 
 
