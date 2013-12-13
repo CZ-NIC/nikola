@@ -40,6 +40,11 @@ get_bool_parameter() {
     echo "$val"
 }
 
+set_wan() {
+    local cfg="$1"
+    config_get wan "$cfg" ifname
+}
+
 server_addr=$(get_parameter server address)
 max_count=$(get_parameter server max_count)
 
@@ -50,9 +55,19 @@ log_rotate_conf=$(get_parameter logrotate path)
 
 debug=$(get_bool_parameter main debug 0)
 
-config_load network
+wan=$(get_parameter main wan_ifname)
 
-wan=$(get_parameter wan ifname)
+if [ ! -n "$wan" ]; then
+    # try to get wan using network
+    config_load network
+    wan=$(get_parameter wan ifname)
+
+    if [ ! -n "$wan" ]; then
+        # try to get wan using ucollect
+        config_load ucollect
+        config_foreach set_wan interface
+    fi
+fi
 
 optional=""
 if [ -n "$max_count" ]; then
