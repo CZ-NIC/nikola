@@ -47,7 +47,7 @@ if __name__ == '__main__':
                          help='specify the syslog date format')
 
     optparser.add_option("-r", "--log-rotate-conf", dest='logrotate_conf',
-                         default='/etc/logrotate.d/nikola', type='string',
+                         default='/etc/logrotate.d/iptables', type='string',
                          help='specify the log rotate config to be triggered')
 
     optparser.add_option("-d", "--debug", dest='debug', action='store_true',
