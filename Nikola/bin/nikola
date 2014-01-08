@@ -107,7 +107,7 @@ if __name__ == '__main__':
         logger.info(("Records parsed: %d" % len(parsed)))
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
         if max_packet_count < len(parsed):
-            msg = "To many data to send in one batch. (%d/%d)" % (len(parsed),
+            msg = "To many records to send in one batch. (%d/%d)" % (len(parsed),
                                                                   max_packet_count)
             logger.error(msg)
             logger.debug(server.init_session())
