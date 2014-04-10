@@ -47,6 +47,7 @@ set_wan() {
 
 server_addr=$(get_parameter server address)
 max_count=$(get_parameter server max_count)
+certificate=$(get_parameter server certificate)
 
 log_file=$(get_parameter logfile path)
 date_format=$(get_parameter logfile date_format)
@@ -56,6 +57,7 @@ log_rotate_conf=$(get_parameter logrotate path)
 debug=$(get_bool_parameter main debug 0)
 
 wan=$(get_parameter main wan_ifname)
+
 
 if [ ! -n "$wan" ]; then
     # try to get wan using network
@@ -84,6 +86,9 @@ if [ -n "$log_rotate_conf" ]; then
 fi
 if [ -n "$wan" ]; then
     optional="$optional -w $wan"
+fi
+if [ -n "$certificate" ]; then
+    optional="$optional -c $certificate"
 fi
 if [ "$debug" = 1 ]; then
     optional="$optional -d"

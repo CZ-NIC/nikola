@@ -57,6 +57,10 @@ if __name__ == '__main__':
                          default=None, type='string',
                          help='specify the wan interface')
 
+    optparser.add_option("-c", "--server-certificate", dest='certificate',
+                         default='/etc/ssl/api.turris.pem', type='string',
+                         help='server certificate to check')
+
     (options, args) = optparser.parse_args()
 
     if len(args) != 1:
@@ -70,10 +74,17 @@ if __name__ == '__main__':
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
     wan = options.wan
+    certificate = options.certificate
 
     try:
 
         server = WrappedServer(server_addr)
+
+        # Validate the server certificate
+        with open(certificate) as f:
+            certificate = f.read()
+
+        server.check_certificate(certificate)
 
         if not wan:
 
@@ -108,7 +119,7 @@ if __name__ == '__main__':
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
         if max_packet_count < len(parsed):
             msg = "Too many records to send in one batch. (%d/%d)" % (len(parsed),
-                                                                  max_packet_count)
+                                                                      max_packet_count)
             logger.error(msg)
             logger.debug(server.init_session())
             logger.debug(server.api_turris_cz.report_error(msg))

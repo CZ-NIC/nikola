@@ -18,6 +18,7 @@
 
 import atsha204
 import binascii
+import ssl
 
 from jsonrpclib import Server
 
@@ -31,6 +32,20 @@ class WrappedServer(Server):
         self.response = None
         self.session_id = None
         Server.__init__(self, addr)
+
+    def check_certificate(self, certificate_to_check):
+
+        # get server certificate
+        socket_cert = ssl.DER_cert_to_PEM_cert(
+            self.transport._connection[1].sock.getpeercert(True))
+
+        # Remove whitespaces
+        socket_cert = "".join(socket_cert.split())
+        certificate_to_check = "".join(certificate_to_check.split())
+
+        # perform the check
+        if not socket_cert == certificate_to_check:
+            raise ssl.SSLError('Server certificate doesn\'t match.')
 
     def init_session(self):
 

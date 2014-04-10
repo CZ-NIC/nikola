@@ -2,11 +2,12 @@ package 'nikola'
 
 config nikola 'main'
     option debug false
-    #option wan_ifname eth0
+    #option wan_ifname eth2
 
 config nikola 'server'
     option address 'https://api.turris.cz/fw'
     option max_count 1000
+    option certificate '/etc/ssl/api.turris.pem'
 
 config nikola 'logfile'
     option path '/var/log/iptables'
