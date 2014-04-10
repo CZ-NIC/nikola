@@ -35,6 +35,11 @@ class WrappedServer(Server):
 
     def check_certificate(self, certificate_to_check):
 
+        # connect when not connected
+        if not self.transport._connection:
+            conn = self.transport.make_connection(self.host)
+            conn.connect()
+
         # get server certificate
         socket_cert = ssl.DER_cert_to_PEM_cert(
             self.transport._connection[1].sock.getpeercert(True))

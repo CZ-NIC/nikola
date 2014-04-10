@@ -255,6 +255,10 @@ class ServerProxy(XMLServerProxy):
     def transport(self):
         return self.__transport
 
+    @property
+    def host(self):
+        return self.__host
+
 
 class _Method(XML_Method):
 
