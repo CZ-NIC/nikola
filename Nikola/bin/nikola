@@ -61,6 +61,10 @@ if __name__ == '__main__':
                          default='/etc/ssl/api.turris.pem', type='string',
                          help='server certificate to check')
 
+    optparser.add_option("-i", "--ignore-certificate", dest='ignore_certificate',
+                         action='store_true', default=False,
+                         help='don\'t check the server certificate')
+
     (options, args) = optparser.parse_args()
 
     if len(args) != 1:
@@ -75,16 +79,20 @@ if __name__ == '__main__':
     logrotate_conf = options.logrotate_conf
     wan = options.wan
     certificate = options.certificate
+    ignore_certificate = options.ignore_certificate
 
     try:
 
         server = WrappedServer(server_addr)
 
-        # Validate the server certificate
-        with open(certificate) as f:
-            certificate = f.read()
+        # Skip the certificate validation when the flag is checked
+        if not ignore_certificate:
 
-        server.check_certificate(certificate)
+            # Validate the server certificate
+            with open(certificate) as f:
+                certificate = f.read()
+
+            server.check_certificate(certificate)
 
         if not wan:
 
