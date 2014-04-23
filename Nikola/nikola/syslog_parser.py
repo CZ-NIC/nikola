@@ -79,25 +79,28 @@ def _parse_line(line, wan, date_format, **kwargs):
     # Check whether wan interface is present (otherwise considered as a local traffic)
     if parsed.get('IN', '') == wan:
         direction = 'I'
-        addr = parsed.get('SRC', '')
-        lport = parsed.get('DPT', '')
+        raddr = parsed.get('SRC', '')
         rport = parsed.get('SPT', '')
+        laddr = parsed.get('DST', '')
+        lport = parsed.get('DPT', '')
     elif parsed.get('OUT', '') == wan:
         direction = 'O'
-        addr = parsed.get('DST', '')
-        lport = parsed.get('SPT', '')
+        raddr = parsed.get('DST', '')
         rport = parsed.get('DPT', '')
+        laddr = parsed.get('SRC', '')
+        lport = parsed.get('SPT', '')
     else:
         return None
 
-    return date, "%s|%s|%s|%s|%s|%s" % (
+    return date, "|".join((
         direction,
-        addr,
+        raddr,
         rport,
+        laddr,
         lport,
         parsed['PROTO'],
         rule_id,
-    )
+    ))
 
 
 def parse_syslog(path, wan, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
