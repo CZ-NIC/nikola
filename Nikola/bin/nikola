@@ -23,7 +23,9 @@ import base64
 import json
 import optparse
 import os
+import random
 import subprocess
+import time
 import zlib
 
 from nikola.filter import filter_records
@@ -66,6 +68,10 @@ if __name__ == '__main__':
                          action='store_true', default=False,
                          help='don\'t check the server certificate')
 
+    optparser.add_option("-n", "--now", dest='now',
+                         action='store_true', default=False,
+                         help='don\'t use random sleep interval')
+
     (options, args) = optparser.parse_args()
 
     if len(args) != 1:
@@ -81,6 +87,15 @@ if __name__ == '__main__':
     wan = options.wan
     certificate = options.certificate
     ignore_certificate = options.ignore_certificate
+    now = options.now
+
+    logger.debug("Nikola synchronization is starting...")
+
+    if not now:
+        # sleep for random amount of time up to one minute
+        seconds = random.randrange(60)
+        logger.debug("Sleeping for %d seconds." % seconds)
+        time.sleep(seconds)
 
     try:
 
