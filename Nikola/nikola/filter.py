@@ -8,7 +8,14 @@ def _match_any(address, regexps):
     return False
 
 
+def _default_rule_in_data(data):
+    # rule = 000...0
+    return not data.rsplit("|", 1)[1].strip("0")
+
+
 def filter_records(records, max_count, fw_exclude_regexp):
+
+    # filter out the exclude regexps
     res = []
     for record in records:
         time, data, count = record
@@ -16,4 +23,22 @@ def filter_records(records, max_count, fw_exclude_regexp):
         if not _match_any(remote_addr, fw_exclude_regexp):
             res.append(record)
 
-    return res
+    # when records reached the limit
+    # throw out rules with 00000000 first
+    expandable_count = reduce(
+        lambda x, y: x + 1 if _default_rule_in_data(y[1]) else x, res, 0)
+    total_count = len(res)
+    expandable_allowed = max_count - (total_count - expandable_count)
+
+    res2 = []
+    for record in res:
+        time, data, count = record
+        if _default_rule_in_data(data):
+            if expandable_allowed > 0:
+                res2.append(record)
+                expandable_allowed -= 1
+        else:
+            res2.append(record)
+
+    # limit strip data to fit max_count
+    return res2[:max_count]

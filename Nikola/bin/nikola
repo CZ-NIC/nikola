@@ -128,9 +128,11 @@ if __name__ == '__main__':
         logger.debug(init_res)
 
         exclude_regexps = init_res.get('fw_exclude_regexp', [])
-        parsed = filter_records(parsed, max_packet_count, exclude_regexps)
 
         logger.info(("Records parsed: %d" % len(parsed)))
+        parsed = filter_records(parsed, max_packet_count, exclude_regexps)
+        logger.info(("Records after filtering: %d" % len(parsed)))
+
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
         if max_packet_count < len(parsed):
             msg = "Too many records to send in one batch. (%d/%d)" % (len(parsed),
