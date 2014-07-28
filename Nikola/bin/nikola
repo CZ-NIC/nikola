@@ -25,7 +25,9 @@ import optparse
 import os
 import random
 import subprocess
+import sys
 import time
+import traceback
 import zlib
 
 from nikola.filter import filter_records
@@ -160,4 +162,6 @@ if __name__ == '__main__':
             logger.info(server.api_turris_cz.firewall.store_logs(compressed))
 
     except Exception, e:
-        logger.error(("Exception thrown: %s" % e))
+        logger.error("Exception thrown: %s" % e)
+        e_type, e_value, e_traceback = sys.exc_info()
+        logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
