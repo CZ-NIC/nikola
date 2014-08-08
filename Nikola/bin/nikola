@@ -29,6 +29,7 @@ import sys
 import time
 import traceback
 import zlib
+import socket
 
 from nikola.filter import filter_records
 from nikola.logger import get_logger
@@ -161,6 +162,8 @@ if __name__ == '__main__':
             compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
             logger.info(server.api_turris_cz.firewall.store_logs(compressed))
 
+    except socket.error, e:
+        logger.error("socket: %s" % e)
     except Exception, e:
         logger.error("Exception thrown: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
