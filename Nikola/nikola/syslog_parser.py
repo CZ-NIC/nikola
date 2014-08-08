@@ -17,21 +17,24 @@
 #
 
 import re
+import string
 
 from datetime import datetime
 
 
 def _parse_time_datetime(line, format, **kwargs):
+    # Only printable characters
+    line = "".join([c for c in line if c in string.printable])
     try:
         # Try to parse
         time = datetime.strptime(line, format)
         rest = ''
-    except ValueError, v:
+    except (ValueError, TypeError), v:
         # Get the length of unmatched characters
         unmatched_len = len(v.message.partition('unconverted data remains: ')[2])
         try:
             time = datetime.strptime(line[:-unmatched_len], format)
-        except ValueError:
+        except (ValueError, TypeError):
             # When second parsing return None as date
             return None, line
 
