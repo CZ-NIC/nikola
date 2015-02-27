@@ -137,7 +137,9 @@ class Transport(TransportMixIn, XMLTransport):
 
 
 class SafeTransport(TransportMixIn, XMLSafeTransport):
-    pass
+    def __init__(self, *args, **kwargs):
+        XMLSafeTransport.__init__(self, *args, **kwargs)
+
 from httplib import HTTP, HTTPConnection
 from socket import socket
 
@@ -174,10 +176,16 @@ class ServerProxy(XMLServerProxy):
 
     def __init__(self, uri, transport=None, encoding=None, 
                  verbose=0, version=None):
-        import urllib
+
         if not version:
             version = config.version
         self.__version = version
+
+        if isinstance(uri, unicode):
+            uri = uri.encode('ISO-8859-1')
+
+        # get the url
+        import urllib
         schema, uri = urllib.splittype(uri)
         if schema not in ('http', 'https', 'unix'):
             raise IOError('Unsupported JSON-RPC protocol.')
@@ -193,6 +201,7 @@ class ServerProxy(XMLServerProxy):
                 # Not sure if this is in the JSON spec?
                 #self.__handler = '/'
                 self.__handler == '/'
+
         if transport is None:
             if schema == 'unix':
                 transport = UnixTransport()

@@ -36,7 +36,7 @@ class WrappedServer(Server):
     def check_certificate(self, certificate_to_check):
 
         # connect when not connected
-        if not self.transport._connection:
+        if not self.transport._connection or self.transport._connection == (None, None):
             conn = self.transport.make_connection(self.host)
             conn.connect()
 
