@@ -20,13 +20,43 @@ import socket
 import datetime
 
 DATA = "testing packet, please ignore this"
+TEST_RESULT_FILE = "/tmp/firewall-turris-status.txt"
 
 
 def test_connect(test_ip):
     # calucate port (according to time) HH:MM -> 10HHMM
     now = datetime.datetime.now()
     port = 10000 + now.hour * 100 + now.minute
-    # init the socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
     # send a packet
-    sock.sendto(DATA, (test_ip, port))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.sendto(DATA, 0, (test_ip, port))
+
+
+def publish_result(records, rule_id):
+
+    last_working = ""
+    try:
+        with open(TEST_RESULT_FILE, 'r') as f:
+            for line in f.readlines():
+                if line.startswith('last working time:'):
+                    last_working = line.split(":", 1)[1].strip()
+
+    except IOError:
+        pass
+
+    success_testing_times = []
+    for record in records:
+        time, data, count = record
+        parsed_rule_id = data.rsplit("|", 1)[1].strip()
+        if int(parsed_rule_id, 16) == int(rule_id, 16):
+            success_testing_times.append(time)
+
+    last_success = max(success_testing_times) if success_testing_times else None
+    last_working = last_success if last_success else last_working
+
+    with open(TEST_RESULT_FILE, 'w') as f:
+        f.writelines([
+            'turris firewall working: %s\n' % ('yes' if last_success else 'no'),
+            'last working time: %s\n' % last_working,
+        ])

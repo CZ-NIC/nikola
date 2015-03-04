@@ -35,7 +35,7 @@ from nikola.filter import filter_records
 from nikola.logger import get_logger
 from nikola.rpc_wrapper import WrappedServer
 from nikola.syslog_parser import parse_syslog
-from nikola.rule_tester import test_connect
+from nikola.rule_tester import test_connect, publish_result
 
 
 if __name__ == '__main__':
@@ -68,6 +68,10 @@ if __name__ == '__main__':
                          default='192.0.2.84', type='string',
                          help='the address which is used for rule testing purposes')
 
+    optparser.add_option("-u", "--test-ruleid", dest='test_rule_id',
+                         default='00DEB060', type='string',
+                         help='this rule id is used for a testing purposes')
+
     optparser.add_option("-c", "--server-certificate", dest='certificate',
                          default='/etc/ssl/api.turris.pem', type='string',
                          help='server certificate to check')
@@ -86,6 +90,7 @@ if __name__ == '__main__':
         optparser.error("incorrect number of arguments")
 
     logger = get_logger(options.debug)
+    parsed = []
 
     server_addr = args[0]
     syslog_file = options.syslog_file
@@ -97,6 +102,7 @@ if __name__ == '__main__':
     ignore_certificate = options.ignore_certificate
     now = options.now
     test_ip = options.test_ip
+    test_rule_id = options.test_rule_id
 
     logger.debug("Nikola synchronization is starting...")
 
@@ -175,9 +181,23 @@ if __name__ == '__main__':
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
 
+    # publish whether the rules are applied
+    try:
+        publish_result(parsed, test_rule_id)
+    except Exception, e:
+        e_type, e_value, e_traceback = sys.exc_info()
+        logger.error("error during rule test: %s" % e)
+        e_type, e_value, e_traceback = sys.exc_info()
+        logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
+
     # try to send the testing packet
     try:
         test_connect(test_ip)
+        logger.error("turris firewall rules might not be active")
+    except socket.error, e:
+        # sending should failed when the rules are applied
+        pass
     except Exception, e:
-        logger.error("failed to send the testing packet: %s"
-                     % str(traceback.extract_tb(e_traceback)))
+        logger.error("failed to send the testing packet: %s" % e)
+        e_type, e_value, e_traceback = sys.exc_info()
+        logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
