@@ -22,6 +22,19 @@ import string
 from datetime import datetime
 
 
+TCP_FLAGS = {
+    'NS': 0b100000000,
+    'CWR': 0b010000000,
+    'ECE': 0b001000000,
+    'URG': 0b000100000,
+    'ACK': 0b000010000,
+    'PSH': 0b000001000,
+    'RST': 0b000000100,
+    'SYN': 0b000000010,
+    'FIN': 0b000000001,
+}
+
+
 def _parse_time_datetime(line, format, **kwargs):
     # Only printable characters
     line = "".join([c for c in line if c in string.printable])
@@ -67,17 +80,20 @@ def _parse_line(line, wan, date_format, **kwargs):
     prefix = splitted[0].rsplit(' ', 1)[1]
 
     # prefix should look like turris[-1A5B7D]:
-    if not 'turris' in prefix:
+    if 'turris' not in prefix:
         # don't send other logged packets
         return None
     rule_id = prefix.rsplit('-', 1)[1] if '-' in prefix else ''
 
     # Parse the rest
     parsed = {}
+    flags = 0b0
     for x in splitted[1].split(' '):
         if '=' in x:
             key, val = x.split('=', 1)
             parsed[key] = val
+        else:
+            flags |= TCP_FLAGS.get(x, 0x0b)
 
     # Check whether wan interface is present (otherwise considered as a local traffic)
     if parsed.get('IN', '') == wan:
@@ -102,6 +118,7 @@ def _parse_line(line, wan, date_format, **kwargs):
         laddr,
         lport,
         parsed['PROTO'],
+        "{0:09b}".format(flags),
         rule_id,
     ))
 
