@@ -43,7 +43,9 @@ def publish_result(records, rule_id):
                     last_working = line.split(":", 1)[1].strip()
 
     except IOError:
-        pass
+        file_exists = False
+    else:
+        file_exists = True
 
     success_testing_times = []
     for record in records:
@@ -54,9 +56,12 @@ def publish_result(records, rule_id):
 
     last_success = max(success_testing_times) if success_testing_times else None
     last_working = last_success if last_success else last_working
+    # When the result file doesn't exist it means that nikola is run for the first time
+    # so no testing packet was send and we can't determine the fw state yet
+    answer = 'yes' if last_success else ('no' if file_exists else '???')
 
     with open(TEST_RESULT_FILE, 'w') as f:
         f.writelines([
-            'turris firewall working: %s\n' % ('yes' if last_success else 'no'),
+            'turris firewall working: %s\n' % answer,
             'last working time: %s\n' % last_working,
         ])
