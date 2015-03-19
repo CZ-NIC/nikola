@@ -157,10 +157,12 @@ if __name__ == '__main__':
         init_res = server.init_session()
         logger.debug(init_res)
 
-        exclude_regexps = init_res.get('fw_exclude_regexp', [])
+        exclude_remote_regexps = init_res.get('fw_exclude_regexp', [])
+        exclude_local_regexps = init_res.get('fw_local_exclude_regexp', [])
 
         logger.info(("Records parsed: %d" % len(parsed)))
-        parsed = filter_records(parsed, max_packet_count, exclude_regexps)
+        parsed = filter_records(
+            parsed, max_packet_count, exclude_remote_regexps, exclude_local_regexps)
         logger.info(("Records after filtering: %d" % len(parsed)))
 
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')

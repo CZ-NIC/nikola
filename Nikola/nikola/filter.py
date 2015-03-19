@@ -13,14 +13,18 @@ def _default_rule_in_data(data):
     return not data.rsplit("|", 1)[1].strip("0")
 
 
-def filter_records(records, max_count, fw_exclude_regexp):
+def filter_records(
+        records, max_count, fw_remote_exclude_regexp, fw_local_exlude_regexp):
 
     # filter out the exclude regexps
     res = []
     for record in records:
         time, data, count = record
-        remote_addr = data.split("|")[1]
-        if not _match_any(remote_addr, fw_exclude_regexp):
+        splitted = data.split("|")
+        remote_addr = splitted[1]
+        local_addr = splitted[3]
+        if not _match_any(remote_addr, fw_remote_exclude_regexp) and \
+                not _match_any(local_addr, fw_local_exlude_regexp):
             res.append(record)
 
     # when records reached the limit
