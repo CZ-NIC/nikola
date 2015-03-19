@@ -16,8 +16,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #
 
-import socket
+import calendar
 import datetime
+import socket
 
 DATA = "testing packet, please ignore this"
 TEST_RESULT_FILE = "/tmp/firewall-turris-status.txt"
@@ -34,6 +35,11 @@ def test_connect(test_ip):
 
 
 def publish_result(records, rule_id):
+
+    def convert_date_string_to_long(string):
+        offset = int(string[-5:]) * 60 * 60 / 100
+        time = datetime.datetime.strptime(string[:-5], '%Y-%m-%d %H:%M:%S')
+        return calendar.timegm(time.timetuple()) - offset
 
     last_working = ""
     try:
@@ -60,8 +66,11 @@ def publish_result(records, rule_id):
     # so no testing packet was send and we can't determine the fw state yet
     answer = 'yes' if last_success else ('no' if file_exists else '???')
 
+    last_working_timestamp = convert_date_string_to_long(last_working) if last_working else ""
+
     with open(TEST_RESULT_FILE, 'w') as f:
         f.writelines([
             'turris firewall working: %s\n' % answer,
             'last working time: %s\n' % last_working,
+            'last working timestamp: %s\n' % last_working_timestamp,
         ])
