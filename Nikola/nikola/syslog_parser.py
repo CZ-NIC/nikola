@@ -93,7 +93,7 @@ def _parse_line(line, wan, date_format, **kwargs):
             key, val = x.split('=', 1)
             parsed[key] = val
         else:
-            flags |= TCP_FLAGS.get(x, 0x0b)
+            flags |= TCP_FLAGS.get(x, 0b0)
 
     # Check whether wan interface is present (otherwise considered as a local traffic)
     if parsed.get('IN', '') == wan:
