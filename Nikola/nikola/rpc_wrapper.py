@@ -33,7 +33,7 @@ class WrappedServer(Server):
         self.session_id = None
         Server.__init__(self, addr)
 
-    def check_certificate(self, certificate_to_check):
+    def check_certificate(self, certificates_to_check):
 
         # connect when not connected
         if not self.transport._connection or self.transport._connection == (None, None):
@@ -46,10 +46,10 @@ class WrappedServer(Server):
 
         # Remove whitespaces
         socket_cert = "".join(socket_cert.split())
-        certificate_to_check = "".join(certificate_to_check.split())
+        certificates_to_check = "".join(certificates_to_check.split())
 
         # perform the check
-        if not socket_cert == certificate_to_check:
+        if socket_cert not in certificates_to_check:
             raise ssl.SSLError('Server certificate doesn\'t match.')
 
     def init_session(self):
