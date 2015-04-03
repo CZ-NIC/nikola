@@ -37,8 +37,10 @@ def get_logger(debug=False):
     stream_handler = logging.StreamHandler()
     logger.addHandler(stream_handler)
 
-    # set debug
+    # set the loglevel
     if debug:
         logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     return logger
