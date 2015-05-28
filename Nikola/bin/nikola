@@ -126,19 +126,7 @@ if __name__ == '__main__':
             server.check_certificate(certificate)
 
         if not wan:
-
-            # Get the wan interface using uci
-            try:
-                # by reading newtork conf
-                wan = subprocess.check_output(('uci', 'get', 'network.wan.ifname')).strip()
-            except (subprocess.CalledProcessError, OSError):
-                try:
-                    # by reading ucollect conf
-                    wan = subprocess.check_output(('uci', 'get',
-                                                   'ucollect.@interface[0].ifname')).strip()
-                except (subprocess.CalledProcessError, OSError):
-                    wan = None
-                    logger.warning('Could not recognize wan device!')
+            logger.warning('WAN device was not set. No data will be send to the server!')
 
         if os.path.exists(syslog_file) and wan:
             # Parse syslog
