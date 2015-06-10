@@ -62,6 +62,7 @@ date_format=$(get_parameter logfile date_format)
 log_rotate_conf=$(get_parameter logrotate path)
 
 debug=$(get_bool_parameter main debug 0)
+random_delay=$(get_bool_parameter main random_delay 1)
 
 wan=$(get_parameter main wan_ifname)
 
@@ -108,6 +109,9 @@ if [ -n "$certificate" ]; then
 fi
 if [ "$debug" = 1 ]; then
 	optional="$optional -d"
+fi
+if [ "$random_delay" = 0 ]; then
+	optional="$optional -n"
 fi
 
 eval nikola "$server_addr" "$optional"
