@@ -19,10 +19,19 @@
 #
 
 from distutils.core import setup
+import re
+
+try:
+    text = open("nikola/version.py", "rt").read()
+    res = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", text, re.M)
+    version = res.group(1)
+except:
+    version = "??"
+
 
 setup(
     name='Nikola',
-    version='0.1',
+    version=version,
     author='CZ.NIC, z.s.p.o. (http://www.nic.cz/)',
     author_email='stepan.henek@nic.cz',
     packages=['nikola', 'nikola.jsonrpclib', ],
