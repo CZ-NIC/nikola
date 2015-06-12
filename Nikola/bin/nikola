@@ -39,13 +39,13 @@ from nikola.rule_tester import test_connect, publish_result
 
 
 def send_test_packet(test_ip):
-    logger.debug("Trying to send a testing packet (it should be filter by the firewall).")
+    logger.debug("Trying to send a testing packet (it should be blocked by the firewall).")
     try:
         test_connect(test_ip)
         logger.error("turris firewall rules might not be active")
     except socket.error, e:
         # sending should failed when the rules are applied
-        pass
+        logger.debug("Failed to send the testing packet (this is expected - blocked by firewall)")
     except Exception, e:
         logger.error("failed to send the testing packet: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
