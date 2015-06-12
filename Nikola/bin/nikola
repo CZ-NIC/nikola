@@ -35,7 +35,7 @@ from nikola.filter import filter_records
 from nikola.logger import get_logger
 from nikola.rpc_wrapper import WrappedServer
 from nikola.syslog_parser import parse_syslog
-from nikola.rule_tester import test_connect, publish_result
+from nikola.tester import test_connect, publish_result
 
 
 def send_test_packet(test_ip):
@@ -136,6 +136,7 @@ if __name__ == '__main__':
         logger.debug("Sleeping for %d seconds." % seconds)
         time.sleep(seconds)
 
+    failed = False
     try:
 
         server = WrappedServer(server_addr)
@@ -189,15 +190,17 @@ if __name__ == '__main__':
             logger.info(server.api_turris_cz.firewall.store_logs(compressed))
 
     except socket.error, e:
+        failed = True
         logger.error("socket: %s" % e)
     except Exception, e:
+        failed = True
         logger.error("Exception thrown: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
 
     # publish whether the rules are applied
     try:
-        publish_result(parsed, test_rule_id)
+        publish_result(parsed, test_rule_id, failed)
     except Exception, e:
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("error during rule test: %s" % e)

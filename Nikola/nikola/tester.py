@@ -34,43 +34,63 @@ def test_connect(test_ip):
     sock.sendto(DATA, 0, (test_ip, port))
 
 
-def publish_result(records, rule_id):
+def _convert_date_string_to_long(string):
+    offset = int(string[-5:]) * 60 * 60 / 100
+    parsed_time = datetime.datetime.strptime(string[:-5], '%Y-%m-%d %H:%M:%S')
+    return calendar.timegm(parsed_time.timetuple()) - offset
 
-    def convert_date_string_to_long(string):
-        offset = int(string[-5:]) * 60 * 60 / 100
-        time = datetime.datetime.strptime(string[:-5], '%Y-%m-%d %H:%M:%S')
-        return calendar.timegm(time.timetuple()) - offset
 
-    last_working = ""
+def publish_result(records, rule_id, failed):
+
+    # Try to parse the file
+    last_server_time = ""
+    last_packet_time = ""
     try:
         with open(TEST_RESULT_FILE, 'r') as f:
             for line in f.readlines():
                 if line.startswith('last working time:'):
-                    last_working = line.split(":", 1)[1].strip()
+                    last_server_time = line.split(":", 1)[1].strip()
+                if line.startswith('last packet test success time:'):
+                    last_packet_time = line.split(":", 1)[1].strip()
 
     except IOError:
         file_exists = False
     else:
         file_exists = True
 
-    success_testing_times = []
+    # Server connection
+    if not failed:
+        last_server_time = datetime.datetime.utcnow()
+        last_server_time = last_server_time.strftime('%Y-%m-%d %H:%M:%S') + "+0000"
+
+    server_working = not failed
+    last_server_timestamp = _convert_date_string_to_long(last_server_time) \
+        if last_server_time else ""
+    server_answer = 'yes' if server_working else 'no'
+
+    # Testing packet
+    success_packet_times = []
     for record in records:
-        time, data, count = record
+        parsed_time, data, count = record
         parsed_rule_id = data.rsplit("|", 1)[1].strip()
         if int(parsed_rule_id, 16) == int(rule_id, 16):
-            success_testing_times.append(time)
+            success_packet_times.append(parsed_time)
 
-    last_success = max(success_testing_times) if success_testing_times else None
-    last_working = last_success if last_success else last_working
+    last_packet_time = max(success_packet_times) if success_packet_times else last_packet_time
+    packet_working = True if success_packet_times else False
+    last_packet_timestamp = _convert_date_string_to_long(last_packet_time) \
+        if last_packet_time else ""
+
     # When the result file doesn't exist it means that nikola is run for the first time
     # so no testing packet was send and we can't determine the fw state yet
-    answer = 'yes' if last_success else ('no' if file_exists else '???')
-
-    last_working_timestamp = convert_date_string_to_long(last_working) if last_working else ""
+    packet_answer = 'yes' if packet_working else ('no' if file_exists else '???')
 
     with open(TEST_RESULT_FILE, 'w') as f:
         f.writelines([
-            'turris firewall working: %s\n' % answer,
-            'last working time: %s\n' % last_working,
-            'last working timestamp: %s\n' % last_working_timestamp,
+            'turris firewall working: %s\n' % server_answer,
+            'last working time: %s\n' % last_server_time,
+            'last working timestamp: %s\n' % last_server_timestamp,
+            'packet test working: %s\n' % packet_answer,
+            'last packet test success time: %s\n' % last_packet_time,
+            'last packet test success timestamp: %s\n' % last_packet_timestamp,
         ])
