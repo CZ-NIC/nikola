@@ -137,10 +137,16 @@ if __name__ == '__main__':
         logger.debug("Sleeping for %d seconds." % seconds)
         time.sleep(seconds)
 
+    last_time = time.time()
+
     failed = False
     try:
 
         server = WrappedServer(server_addr)
+        server.connect_when_not_connected()
+
+        logger.info("Establishing connection took %f seconds" % (time.time() - last_time))
+        last_time = time.time()
 
         # Skip the certificate validation when the flag is checked
         if not ignore_certificate:
@@ -150,6 +156,8 @@ if __name__ == '__main__':
                 certificate = f.read()
 
             server.check_certificate(certificate)
+            logger.info("Checking server certificates took %f seconds" % (time.time() - last_time))
+            last_time = time.time()
 
         if not wans:
             logger.warning('No WAN device was set. No data will be send to the server!')
@@ -158,11 +166,17 @@ if __name__ == '__main__':
             # Parse syslog
             parsed = parse_syslog(syslog_file, wans, syslog_date_format)
 
+            logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
+            last_time = time.time()
+
             # logrotete the logs
             output = subprocess.check_output(
                 ('/usr/sbin/logrotate', '-s', '/tmp/logrotate-nikola.state', logrotate_conf, )
             )
             logger.debug(("logrotate output: %s" % output))
+
+            logger.info("Logrotate took %f seconds" % (time.time() - last_time))
+            last_time = time.time()
 
         else:
             # To file to parse means no records
@@ -170,6 +184,8 @@ if __name__ == '__main__':
 
         init_res = server.init_session()
         logger.debug(init_res)
+        logger.info("Session init took %f seconds" % (time.time() - last_time))
+        last_time = time.time()
 
         exclude_remote_regexps = init_res.get('fw_exclude_regexp', [])
         exclude_local_regexps = init_res.get('fw_local_exclude_regexp', [])
@@ -178,6 +194,8 @@ if __name__ == '__main__':
         parsed = filter_records(
             parsed, max_packet_count, exclude_remote_regexps, exclude_local_regexps)
         logger.info(("Records after filtering: %d" % len(parsed)))
+        logger.info("Records filtering took %f seconds" % (time.time() - last_time))
+        last_time = time.time()
 
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
         if max_packet_count < len(parsed):
@@ -185,10 +203,14 @@ if __name__ == '__main__':
                                                                       max_packet_count)
             logger.error(msg)
             logger.debug(server.api_turris_cz.report_error(msg))
+            logger.info("Sending error took %f seconds" % (time.time() - last_time))
+            last_time = time.time()
         else:
             # comporess the logs
             compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
             logger.info(server.api_turris_cz.firewall.store_logs(compressed))
+            logger.info("Sending records took %f seconds" % (time.time() - last_time))
+            last_time = time.time()
 
     except socket.error, e:
         failed = True
