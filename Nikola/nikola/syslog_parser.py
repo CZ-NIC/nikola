@@ -65,7 +65,7 @@ def _parse_time_datetime(line, format, **kwargs):
     return time.strftime('%Y-%m-%d %H:%M:%S' + timezone), rest
 
 
-def _parse_line(line, wan, date_format, **kwargs):
+def _parse_line(line, wans, date_format, **kwargs):
 
     # Cut the date
     date, rest = _parse_time_datetime(line, date_format, **kwargs)
@@ -96,13 +96,13 @@ def _parse_line(line, wan, date_format, **kwargs):
             flags |= TCP_FLAGS.get(x, 0b0)
 
     # Check whether wan interface is present (otherwise considered as a local traffic)
-    if parsed.get('IN', '') == wan:
+    if parsed.get('IN', '') in wans:
         direction = 'I'
         raddr = parsed.get('SRC', '')
         rport = parsed.get('SPT', '')
         laddr = parsed.get('DST', '')
         lport = parsed.get('DPT', '')
-    elif parsed.get('OUT', '') == wan:
+    elif parsed.get('OUT', '') in wans:
         direction = 'O'
         raddr = parsed.get('DST', '')
         rport = parsed.get('DPT', '')
@@ -123,14 +123,14 @@ def _parse_line(line, wan, date_format, **kwargs):
     ))
 
 
-def parse_syslog(path, wan, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
+def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
 
     res = []
 
     with open(path) as f:
         last = None
         for line in f:
-            parsed_line = _parse_line(line, wan, date_format, **kwargs)
+            parsed_line = _parse_line(line, wans, date_format, **kwargs)
             if parsed_line:
                 date, parsed = parsed_line
                 # Same packets in the sequence

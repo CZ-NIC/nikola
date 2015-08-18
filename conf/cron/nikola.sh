@@ -65,7 +65,7 @@ debug=$(get_bool_parameter main debug 0)
 random_delay=$(get_bool_parameter main random_delay 1)
 
 wan=$(get_parameter main wan_ifname)
-
+wan6=$(get_parameter main wan6_ifname)
 
 if [ ! -n "$wan" ]; then
 	# autodetect using default routes (taken from ucollect init script)
@@ -74,7 +74,9 @@ if [ ! -n "$wan" ]; then
 	V4=$(route -n | sed -ne 's/ *$//;/^0\.0\.0\.0  *[0-9.][0-9.]*  *0\.0\.0\.0/s/.* //p')
 	V6=$(route -n -A inet6 | sed -ne 's/ *$//;/^::\/0  /s/.* //p')
 	# Unify them and remove duplicates
-	ALL=$(echo "$V4" "$V6" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
+	V4=$(echo "$V4" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
+	V6=$(echo "$V6" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
+
 	IGNORE=$(uci -X show network | sed -ne 's/^network\.\([^.]*\)=interface$/\1/p' | while read iface ; do
 		proto=$(uci get -q network.$iface.proto)
 		name=$(echo "$proto-$iface" | head -c 15)
@@ -85,7 +87,9 @@ if [ ! -n "$wan" ]; then
 			echo "$name"
 		fi
 	done)
-	wan=$(get_wan "$ALL" "$IGNORE")
+	wan4=$(get_wan "$V4" "$IGNORE")
+	wan6=$(get_wan "$V6" "$IGNORE")
+	wan="${wan4},${wan6}"
 fi
 
 optional=""

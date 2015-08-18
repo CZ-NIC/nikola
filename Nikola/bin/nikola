@@ -76,9 +76,9 @@ if __name__ == '__main__':
     optparser.add_option("-d", "--debug", dest='debug', action='store_true',
                          default=False, help='use debug output')
 
-    optparser.add_option("-w", "--wan-interface", dest='wan',
+    optparser.add_option("-w", "--wan-interfaces", dest='wans',
                          default=None, type='string',
-                         help='specify the wan interface')
+                         help='comma separated list of wan interfaces')
 
     optparser.add_option("-t", "--test-ip", dest='test_ip',
                          default='192.0.2.84', type='string',
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     max_packet_count = options.max
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
-    wan = options.wan
+    wans = [e.strip() for e in options.wans.split(",") if e.strip()] if options.wans else []
     certificate = options.certificate
     ignore_certificate = options.ignore_certificate
     now = options.now
@@ -129,6 +129,7 @@ if __name__ == '__main__':
     parsed = []
 
     logger.debug("Nikola synchronization is starting...")
+    logger.info("recognized WAN interfaces: " + ", ".join(wans))
 
     if not now:
         # sleep for random amount of time up to one minute
@@ -150,12 +151,12 @@ if __name__ == '__main__':
 
             server.check_certificate(certificate)
 
-        if not wan:
-            logger.warning('WAN device was not set. No data will be send to the server!')
+        if not wans:
+            logger.warning('No WAN device was set. No data will be send to the server!')
 
-        if os.path.exists(syslog_file) and wan:
+        if os.path.exists(syslog_file) and wans:
             # Parse syslog
-            parsed = parse_syslog(syslog_file, wan, syslog_date_format)
+            parsed = parse_syslog(syslog_file, wans, syslog_date_format)
 
             # logrotete the logs
             output = subprocess.check_output(
