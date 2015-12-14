@@ -118,4 +118,10 @@ if [ "$random_delay" = 0 ]; then
 	optional="$optional -n"
 fi
 
-eval nikola "$server_addr" "$optional"
+if [ -n "$server_addr" ]; then
+	eval nikola "$server_addr" "$optional"
+	exit $?
+else
+	logger -t nikola -p err "Unable to read the mandatory server address option from the config (/etc/config/nikola). Exitting.."
+	exit 1
+fi
