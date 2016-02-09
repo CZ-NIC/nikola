@@ -95,6 +95,12 @@ def _parse_line(line, wans, date_format, **kwargs):
         else:
             flags |= TCP_FLAGS.get(x, 0b0)
 
+    # When the protocol is missing it might be caused by that
+    # syslog hasn't put the whole line into log file yet
+    # In this case we'll skip the line
+    if 'PROTO' not in parsed:
+        return None
+
     # Check whether wan interface is present (otherwise considered as a local traffic)
     if parsed.get('IN', '') in wans:
         direction = 'I'
