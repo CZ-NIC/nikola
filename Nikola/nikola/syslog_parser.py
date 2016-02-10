@@ -129,8 +129,7 @@ def _parse_line(line, wans, date_format, **kwargs):
     ))
 
 
-def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
-
+def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwargs):
     res = []
 
     with open(path) as f:
@@ -145,5 +144,7 @@ def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
                 else:
                     res.append([date, parsed, 1])
                     last = parsed
+            else:
+                logger and logger.warning("Failed to parse line: '%s'" % line)
 
     return res

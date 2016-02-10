@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
         if os.path.exists(syslog_file) and wans:
             # Parse syslog
-            parsed = parse_syslog(syslog_file, wans, syslog_date_format)
+            parsed = parse_syslog(syslog_file, wans, syslog_date_format, logger=logger)
 
             logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
             last_time = time.time()
