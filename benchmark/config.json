@@ -1,0 +1,10 @@
+{
+	"output_dir": "/tmp/",
+	"clients": 5,
+	"count": 10000,
+	"batch_size_max": 1000,
+	"batch_size_min": 1,
+	"batch_count_max": 100,
+	"within": 60,
+	"debug": true
+}
