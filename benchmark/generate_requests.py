@@ -15,7 +15,8 @@ if __name__ == "__main__":
     with open(sys.argv[1], 'r') as f:
         conf = json.load(f)
 
-    generator = RequestGenerator(name=".".join(os.path.splitext(sys.argv[1])[:-1]), **conf)
+    generator = RequestGenerator(
+        name=".".join(os.path.splitext(os.path.basename(sys.argv[1]))[:-1]), **conf)
 
     generator.generate()
     generator.store_results()

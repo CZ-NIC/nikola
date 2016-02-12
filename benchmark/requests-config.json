@@ -1,5 +1,5 @@
 {
-	"output_dir": "/tmp/",
+	"output_dir": "workdir/",
 	"clients": 5,
 	"count": 10000,
 	"batch_size_max": 1000,
