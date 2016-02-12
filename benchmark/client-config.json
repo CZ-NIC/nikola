@@ -1,0 +1,15 @@
+{
+	"url": "http://localhost:8008/",
+	"serial": "0000000000000001",
+	"slot_id": 0,
+	"client_id": "0000",
+	"batch_dir": "/tmp/",
+	"key": "00000000000000000000000000000000",
+	"debug": true,
+	"packets": {
+		"protocols": [ "TCP", "UDP" ],
+		"tcp_flags": [ "NS", "CWR", "ECE", "URG", "ACK", "PSH", "RST", "SYN", "FIN"],
+		"ip_types": [ 4, 6 ],
+		"rule_ids": [ "0FA7E000" ]
+	}
+}
