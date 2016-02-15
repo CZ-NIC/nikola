@@ -42,9 +42,6 @@ def send_data(batch_id, client_id, url, serial, slot_id, key, batch_dir, debug=F
         if debug:
             print record
 
-    if debug:
-        print("%d packets were sent to the server" % len(data))
-
     # init connection
     server = WrappedServer(url, serial, key, slot_id)
     server.connect_when_not_connected()
@@ -52,6 +49,9 @@ def send_data(batch_id, client_id, url, serial, slot_id, key, batch_dir, debug=F
 
     compressed = base64.b64encode(zlib.compress(json.dumps(data), 1))
     check_reply(server.api_turris_cz.firewall.store_logs(compressed))
+
+    if debug:
+        print("%d packets were sent to the server" % len(data))
 
     # close connection
 
