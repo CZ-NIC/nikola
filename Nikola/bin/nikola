@@ -163,12 +163,6 @@ if __name__ == '__main__':
             logger.warning('No WAN device was set. No data will be send to the server!')
 
         if os.path.exists(syslog_file) and wans:
-            # Parse syslog
-            parsed = parse_syslog(syslog_file, wans, syslog_date_format, logger=logger)
-
-            logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
-            last_time = time.time()
-
             # logrotete the logs
             output = subprocess.check_output(
                 ('/usr/sbin/logrotate', '-s', '/tmp/logrotate-nikola.state', logrotate_conf, )
@@ -176,6 +170,12 @@ if __name__ == '__main__':
             logger.debug(("logrotate output: %s" % output))
 
             logger.info("Logrotate took %f seconds" % (time.time() - last_time))
+            last_time = time.time()
+
+            # Parse syslog
+            parsed = parse_syslog("%s.1" % syslog_file, wans, syslog_date_format, logger=logger)
+
+            logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
             last_time = time.time()
 
         else:
