@@ -75,7 +75,7 @@ class Generator(object):
 
 class RequestGenerator(Generator):
     MANDATORY = {
-        'output_dir', 'clients', 'count'
+        'output_dir', 'clients', 'count', 'name'
     }
 
     def load_defaults(self):
@@ -186,9 +186,11 @@ class PacketGenerator(Generator):
 
         self._data = []
         for _ in range(self.count):
-            tcp_flags = random.sample(self.tcp_flags, random.randrange(len(self.tcp_flags) + 1)) \
-                if self.tcp_flags else ""
-            tcp_flags = " ".join(tcp_flags)
+            if self.tcp_flags:
+                tcp_flags = random.sample(self.tcp_flags, random.randrange(len(self.tcp_flags)))
+                tcp_flags = " ".join(tcp_flags)
+            else:
+                tcp_flags = ""
 
             dev_in, dev_out = (self.wan_eth, "") if random.getrandbits(1) else ("", self.wan_eth)
             rule_id = random.choice(self.rule_ids)
