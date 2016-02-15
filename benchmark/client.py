@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     # Parse the command line options
     optparser = optparse.OptionParser(
-        "usage: %prog --config CONFIG_FILE --data DATA_FILE [--start-time TIME]\n"
+        "usage: %prog --config CONFIG.JSON --requests DATA.CSV [--start-time TIME]\n"
     )
 
     optparser.add_option(
