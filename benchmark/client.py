@@ -54,6 +54,7 @@ def send_data(batch_id, client_id, url, serial, slot_id, key, batch_dir, debug=F
         print("%d packets were sent to the server" % len(data))
 
     # close connection
+    server.transport.close()
 
 
 def process_requests(conf):
