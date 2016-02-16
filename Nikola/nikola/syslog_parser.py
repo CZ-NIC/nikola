@@ -95,6 +95,12 @@ def _parse_line(line, wans, date_format, **kwargs):
         else:
             flags |= TCP_FLAGS.get(x, 0b0)
 
+    # When the protocol is missing it might be caused by that
+    # syslog hasn't put the whole line into log file yet
+    # In this case we'll skip the line
+    if 'PROTO' not in parsed:
+        return None
+
     # Check whether wan interface is present (otherwise considered as a local traffic)
     if parsed.get('IN', '') in wans:
         direction = 'I'
@@ -123,8 +129,7 @@ def _parse_line(line, wans, date_format, **kwargs):
     ))
 
 
-def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
-
+def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwargs):
     res = []
 
     with open(path) as f:
@@ -139,5 +144,7 @@ def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', **kwargs):
                 else:
                     res.append([date, parsed, 1])
                     last = parsed
+            else:
+                logger and logger.warning("Failed to parse line: '%s'" % line)
 
     return res
