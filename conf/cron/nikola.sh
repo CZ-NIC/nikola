@@ -22,24 +22,6 @@
 
 config_load nikola
 
-get_parameter() {
-	local sec="$1"
-	local var="$2"
-	local val
-
-	config_get val "$sec" "$var"
-	echo "$val"
-}
-
-get_bool_parameter() {
-	local sec="$1"
-	local var="$2"
-	local val
-
-	config_get_bool val "$sec" "$var" "$3"
-	echo "$val"
-}
-
 get_wan() {
 	IFACES="$1"
 	IGNORE="$2"
@@ -52,20 +34,20 @@ get_wan() {
 	done
 }
 
-server_addr=$(get_parameter server address)
-max_count=$(get_parameter server max_count)
-certificate=$(get_parameter server certificate)
+config_get server_addr server address
+config_get max_count server max_count
+config_get certificate server certificate
 
-log_file=$(get_parameter logfile path)
-date_format=$(get_parameter logfile date_format)
+config_get log_file logfile path
+config_get date_format logfile date_format
 
-log_rotate_conf=$(get_parameter logrotate path)
+config_get log_rotate_conf logrotate path
 
-debug=$(get_bool_parameter main debug 0)
-random_delay=$(get_bool_parameter main random_delay 1)
+config_get_bool debug main debug 0
+config_get_bool random_delay main random_delay 1
 
-wan=$(get_parameter main wan_ifname)
-wan6=$(get_parameter main wan6_ifname)
+config_get wan main wan_ifname
+config_get wan6 main wan6_ifname
 
 if [ ! -n "$wan" ]; then
 	# autodetect using default routes (taken from ucollect init script)
