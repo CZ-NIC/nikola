@@ -24,12 +24,13 @@ import json
 import optparse
 import os
 import random
+import socket
+import ssl
 import subprocess
 import sys
 import time
 import traceback
 import zlib
-import socket
 
 from nikola.filter import filter_records
 from nikola.logger import get_logger
@@ -96,6 +97,14 @@ if __name__ == '__main__':
                          default='/etc/ssl/api.turris.pem', type='string',
                          help='server certificate to check')
 
+    optparser.add_option("-C", "--ca-path", dest='ca_path',
+                         default='/etc/ssl/startcom.pem', type='string',
+                         help='certificate autohrity path')
+
+    optparser.add_option("-L", "--crl-path", dest='crl_path',
+                         default='/etc/ssl/crl.pem', type='string',
+                         help='certificate autohrity path')
+
     optparser.add_option("-i", "--ignore-certificate", dest='ignore_certificate',
                          action='store_true', default=False,
                          help='don\'t check the server certificate')
@@ -115,6 +124,8 @@ if __name__ == '__main__':
     wans = [e.strip() for e in options.wans.split(",") if e.strip()] if options.wans else []
     certificate = options.certificate
     ignore_certificate = options.ignore_certificate
+    ca_path = options.ca_path
+    crl_path = options.crl_path
     now = options.now
     test_ip = options.test_ip
     test_rule_id = options.test_rule_id
@@ -142,7 +153,18 @@ if __name__ == '__main__':
     failed = False
     try:
 
-        server = WrappedServer(server_addr)
+        # CA and crl validation
+        if not ignore_certificate:
+            # prepare ssl context here
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_context.load_verify_locations(ca_path)
+            ssl_context.load_verify_locations(crl_path)
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+            ssl_context.verify_flags |= ssl.VERIFY_CRL_CHECK_CHAIN
+        else:
+            ssl_context = None
+
+        server = WrappedServer(server_addr, ssl_context=ssl_context)
         server.connect_when_not_connected()
 
         logger.info("Establishing connection took %f seconds" % (time.time() - last_time))

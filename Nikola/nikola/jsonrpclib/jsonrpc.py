@@ -175,7 +175,7 @@ class ServerProxy(XMLServerProxy):
     """
 
     def __init__(self, uri, transport=None, encoding=None, 
-                 verbose=0, version=None):
+                 verbose=0, version=None, context=None):
 
         if not version:
             version = config.version
@@ -206,7 +206,7 @@ class ServerProxy(XMLServerProxy):
             if schema == 'unix':
                 transport = UnixTransport()
             elif schema == 'https':
-                transport = SafeTransport()
+                transport = SafeTransport(context=context)
             else:
                 transport = Transport()
         self.__transport = transport

@@ -37,6 +37,8 @@ get_wan() {
 config_get server_addr server address
 config_get max_count server max_count
 config_get certificate server certificate
+config_get ca_path server ca_path
+config_get crl_path server crl_path
 
 config_get log_file logfile path
 config_get date_format logfile date_format
@@ -92,6 +94,12 @@ if [ -n "$wan" ]; then
 fi
 if [ -n "$certificate" ]; then
 	optional="$optional -c $certificate"
+fi
+if [ -n "$ca_path" ]; then
+	optional="$optional -C $ca_path"
+fi
+if [ -n "$crl_path" ]; then
+	optional="$optional -L $crl_path"
 fi
 if [ "$debug" = 1 ]; then
 	optional="$optional -d"

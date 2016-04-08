@@ -26,12 +26,12 @@ RANDOM_LEN = 32
 
 
 class WrappedServer(Server):
-    def __init__(self, addr, serial=None):
+    def __init__(self, addr, serial=None, ssl_context=None):
         self.serial = binascii.hexlify(serial if serial else atsha204.get_serial())
         self.challenge = None
         self.response = None
         self.session_id = None
-        Server.__init__(self, addr)
+        Server.__init__(self, addr, context=ssl_context)
 
     def connect_when_not_connected(self):
         # connect when not connected
