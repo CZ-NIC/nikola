@@ -20,6 +20,9 @@
 
 . $IPKG_INSTROOT/lib/functions.sh
 
+# run get-api-crl to get the latest CRL
+/usr/bin/get-api-crl
+
 config_load nikola
 
 get_wan() {
