@@ -25,15 +25,12 @@
 
 config_load nikola
 
-get_wan() {
-	IFACES="$1"
-	IGNORE="$2"
-	for iface in $IFACES ; do
-		if echo "$IGNORE" | grep -qwF "$iface" ; then
-			continue;
-		fi
-		echo "$iface"
-		return
+get_wans() {
+	# Unify them and remove duplicates
+	local list=$(echo "$@" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
+	# return comma-separeted list of wans
+	for iface in $list; do
+		echo -n "$iface",
 	done
 }
 
@@ -51,33 +48,20 @@ config_get log_rotate_conf logrotate path
 config_get_bool debug main debug 0
 config_get_bool random_delay main random_delay 1
 
-config_get wan main wan_ifname
+config_get wan4 main wan_ifname
 config_get wan6 main wan6_ifname
 
-if [ ! -n "$wan" ]; then
-	# autodetect using default routes (taken from ucollect init script)
-
-	# Look into the routing tables to guess WAN interfaces
-	V4=$(route -n | sed -ne 's/ *$//;/^0\.0\.0\.0  *[0-9.][0-9.]*  *0\.0\.0\.0/s/.* //p')
-	V6=$(route -n -A inet6 | sed -ne 's/ *$//;/^::\/0  /s/.* //p')
-	# Unify them and remove duplicates
-	V4=$(echo "$V4" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
-	V6=$(echo "$V6" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
-
-	IGNORE=$(uci -X show network | sed -ne 's/^network\.\([^.]*\)=interface$/\1/p' | while read iface ; do
-		proto=$(uci -q get network.$iface.proto)
-		name=$(echo "$proto-$iface" | head -c 15)
-		# TODO: What about L2TP? #3093
-		if [ "$proto" = "6in4" -o "$proto" = "6to4" -o "$proto" = "6rd" -o "$proto" = "dslite" ] ; then
-			# These are tunnels. We can look into them (and do) and they'll travel through the
-			# WAN interface, so we don't need these. Ignore them.
-			echo "$name"
-		fi
-	done)
-	wan4=$(get_wan "$V4" "$IGNORE")
-	wan6=$(get_wan "$V6" "$IGNORE")
-	wan="${wan4},${wan6}"
+if [ ! -n "$wan4" ]; then
+	# Look into the routing tables to guess WAN4 interfaces
+	wan4=$(route -n | sed -ne 's/ *$//;/^0\.0\.0\.0  *[0-9.][0-9.]*  *0\.0\.0\.0/s/.* //p')
 fi
+
+if [ ! -n "$wan6" ]; then
+	# Look into the routing tables to guess WAN6 interfaces
+	wan6=$(route -n -A inet6 | sed -ne 's/ *$//;/^::\/0  /s/.* //p')
+fi
+
+wan="$(get_wans ${wan4} ${wan6})"
 
 optional=""
 if [ -n "$max_count" ]; then
