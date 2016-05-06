@@ -5,15 +5,3 @@ config nikola 'main'
     #list wan_ifname eth2
     #list wan6_ifname teredo
     #option random_delay true
-
-config nikola 'server'
-    option address 'https://api.turris.cz/fw'
-    option max_count 1000
-    option certificate '/etc/ssl/api.turris.pem'
-
-config nikola 'logfile'
-    option path '/var/log/iptables'
-    option date_format '%Y-%m-%dT%H:%M:%S'
-
-config nikola 'logrotate'
-    option path '/etc/logrotate.d/iptables'

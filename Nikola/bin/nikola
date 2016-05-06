@@ -44,10 +44,10 @@ def send_test_packet(test_ip):
     try:
         test_connect(test_ip)
         logger.error("turris firewall rules might not be active")
-    except socket.error, e:
+    except socket.error as e:
         # sending should failed when the rules are applied
         logger.debug("Failed to send the testing packet (this is expected - blocked by firewall)")
-    except Exception, e:
+    except Exception as e:
         logger.error("failed to send the testing packet: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
@@ -56,9 +56,11 @@ if __name__ == '__main__':
 
     # Parse the command line options
     optparser = optparse.OptionParser(
-        "usage: %prog [options] server_addr\n"
-        "       %prog [options] -j\n"
+        "usage: %prog [options]\n"
     )
+    optparser.add_option("-s", "--server-address", dest='server_address',
+                         default='https://api.turris.cz/fw', type='string',
+                         help='set the server address')
     optparser.add_option("-l", "--log-file", dest='syslog_file',
                          default='/var/log/iptables', type='string',
                          help='specify the syslog file to be parsed')
@@ -130,13 +132,11 @@ if __name__ == '__main__':
     test_ip = options.test_ip
     test_rule_id = options.test_rule_id
     just_test = options.just_test
+    server_address = options.server_address
     if just_test:
         send_test_packet(test_ip)
         sys.exit()
 
-    if len(args) != 1:
-        optparser.error("incorrect number of arguments")
-    server_addr = args[0]
     parsed = []
 
     logger.debug("Nikola synchronization is starting...")
@@ -164,7 +164,7 @@ if __name__ == '__main__':
         else:
             ssl_context = None
 
-        server = WrappedServer(server_addr, ssl_context=ssl_context)
+        server = WrappedServer(server_address, ssl_context=ssl_context)
         server.connect_when_not_connected()
 
         logger.info("Establishing connection took %f seconds" % (time.time() - last_time))
