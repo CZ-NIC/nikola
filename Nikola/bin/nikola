@@ -21,7 +21,7 @@
 
 import base64
 import json
-import optparse
+import argparse
 import os
 import random
 import socket
@@ -55,67 +55,80 @@ def send_test_packet(test_ip):
 if __name__ == '__main__':
 
     # Parse the command line options
-    optparser = optparse.OptionParser(
-        "usage: %prog [options]\n"
+    parser = argparse.ArgumentParser(prog="nikola")
+    parser.add_argument(
+        "-s", "--server-address", dest='server_address', default='https://api.turris.cz/fw',
+        help='set the server address'
     )
-    optparser.add_option("-s", "--server-address", dest='server_address',
-                         default='https://api.turris.cz/fw', type='string',
-                         help='set the server address')
-    optparser.add_option("-l", "--log-file", dest='syslog_file',
-                         default='/var/log/iptables', type='string',
-                         help='specify the syslog file to be parsed')
 
-    optparser.add_option("-m", "--max", dest='max', default=1000, type='int',
-                         help='max record count to be sent')
+    parser.add_argument(
+        "-l", "--log-file", dest='syslog_file', default='/var/log/iptables',
+        help='specify the syslog file to be parsed'
+    )
 
-    optparser.add_option("-f", "--date-format", dest='date_format',
-                         default='%Y-%m-%dT%H:%M:%S', type='string',
-                         help='specify the syslog date format')
+    parser.add_argument(
+        "-m", "--max", dest='max', default=1000, help='max record count to be sent'
+    )
 
-    optparser.add_option("-r", "--log-rotate-conf", dest='logrotate_conf',
-                         default='/etc/logrotate.d/iptables', type='string',
-                         help='specify the log rotate config to be triggered')
+    parser.add_argument(
+        "-f", "--date-format", dest='date_format', default='%Y-%m-%dT%H:%M:%S',
+        help='specify the syslog date format'
+    )
 
-    optparser.add_option("-d", "--debug", dest='debug', action='store_true',
-                         default=False, help='use debug output')
+    parser.add_argument(
+        "-r", "--log-rotate-conf", dest='logrotate_conf', default='/etc/logrotate.d/iptables',
+        help='specify the log rotate config to be triggered'
+    )
 
-    optparser.add_option("-w", "--wan-interfaces", dest='wans',
-                         default=None, type='string',
-                         help='comma separated list of wan interfaces')
+    parser.add_argument(
+        "-d", "--debug", dest='debug', action='store_true', default=False, help='use debug output'
+    )
 
-    optparser.add_option("-t", "--test-ip", dest='test_ip',
-                         default='192.0.2.84', type='string',
-                         help='the address which is used for rule testing purposes')
+    parser.add_argument(
+        "-w", "--wan-interfaces", dest='wans', default=None,
+        help='comma separated list of wan interfaces'
+    )
 
-    optparser.add_option("-u", "--test-ruleid", dest='test_rule_id',
-                         default='00DEB060', type='string',
-                         help='this rule id is used for a testing purposes')
+    parser.add_argument(
+        "-t", "--test-ip", dest='test_ip', default='192.0.2.84',
+        help='the address which is used for rule testing purposes'
+    )
 
-    optparser.add_option("-j", "--just-test", dest='just_test',
-                         action='store_true', default=False,
-                         help='just try to send a test packet')
+    parser.add_argument(
+        "-u", "--test-ruleid", dest='test_rule_id', default='00DEB060',
+        help='this rule id is used for a testing purposes'
+    )
 
-    optparser.add_option("-c", "--server-certificate", dest='certificate',
-                         default='/etc/ssl/api.turris.pem', type='string',
-                         help='server certificate to check')
+    parser.add_argument(
+        "-j", "--just-test", dest='just_test', action='store_true', default=False,
+        help='just try to send a test packet'
+    )
 
-    optparser.add_option("-C", "--ca-path", dest='ca_path',
-                         default='/etc/ssl/startcom.pem', type='string',
-                         help='certificate autohrity path')
+    parser.add_argument(
+        "-c", "--server-certificate", dest='certificate', default='/etc/ssl/api.turris.pem',
+        help='server certificate to check')
 
-    optparser.add_option("-L", "--crl-path", dest='crl_path',
-                         default='/etc/ssl/crl.pem', type='string',
-                         help='certificate autohrity path')
+    parser.add_argument(
+        "-C", "--ca-path", dest='ca_path', default='/etc/ssl/startcom.pem',
+        help='certificate autohrity path'
+    )
 
-    optparser.add_option("-i", "--ignore-certificate", dest='ignore_certificate',
-                         action='store_true', default=False,
-                         help='don\'t check the server certificate')
+    parser.add_argument(
+        "-L", "--crl-path", dest='crl_path', default='/etc/ssl/crl.pem',
+        help='certificate autohrity path'
+    )
 
-    optparser.add_option("-n", "--now", dest='now',
-                         action='store_true', default=False,
-                         help='don\'t use random sleep interval')
+    parser.add_argument(
+        "-i", "--ignore-certificate", dest='ignore_certificate', action='store_true',
+        default=False, help='don\'t check the server certificate'
+    )
 
-    (options, args) = optparser.parse_args()
+    parser.add_argument(
+        "-n", "--now", dest='now', action='store_true', default=False,
+        help='don\'t use random sleep interval'
+    )
+
+    options = parser.parse_args()
 
     logger = get_logger(options.debug)
 
