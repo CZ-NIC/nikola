@@ -58,44 +58,45 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="nikola")
     parser.add_argument(
         "-s", "--server-address", dest='server_address', default='https://api.turris.cz/fw',
-        help='set the server address'
+        type=str, help='set the server address'
     )
 
     parser.add_argument(
-        "-l", "--log-file", dest='syslog_file', default='/var/log/iptables',
+        "-l", "--log-file", dest='syslog_file', default='/var/log/iptables', type=str,
         help='specify the syslog file to be parsed'
     )
 
     parser.add_argument(
-        "-m", "--max", dest='max', default=1000, help='max record count to be sent'
+        "-m", "--max", dest='max', default=1000, help='max record count to be sent', type=int,
     )
 
     parser.add_argument(
-        "-f", "--date-format", dest='date_format', default='%Y-%m-%dT%H:%M:%S',
+        "-f", "--date-format", dest='date_format', default='%Y-%m-%dT%H:%M:%S', type=str,
         help='specify the syslog date format'
     )
 
     parser.add_argument(
         "-r", "--log-rotate-conf", dest='logrotate_conf', default='/etc/logrotate.d/iptables',
-        help='specify the log rotate config to be triggered'
+        type=str, help='specify the log rotate config to be triggered'
     )
 
     parser.add_argument(
-        "-d", "--debug", dest='debug', action='store_true', default=False, help='use debug output'
+        "-d", "--debug", dest='debug', action='store_true', default=False,
+        help='use debug output'
     )
 
     parser.add_argument(
-        "-w", "--wan-interfaces", dest='wans', default=None,
+        "-w", "--wan-interfaces", dest='wans', default=None, type=str,
         help='comma separated list of wan interfaces'
     )
 
     parser.add_argument(
-        "-t", "--test-ip", dest='test_ip', default='192.0.2.84',
+        "-t", "--test-ip", dest='test_ip', default='192.0.2.84', type=str,
         help='the address which is used for rule testing purposes'
     )
 
     parser.add_argument(
-        "-u", "--test-ruleid", dest='test_rule_id', default='00DEB060',
+        "-u", "--test-ruleid", dest='test_rule_id', default='00DEB060', type=str,
         help='this rule id is used for a testing purposes'
     )
 
@@ -106,16 +107,16 @@ if __name__ == '__main__':
 
     parser.add_argument(
         "-c", "--server-certificate", dest='certificate', default='/etc/ssl/api.turris.pem',
-        help='server certificate to check')
+        type=str, help='server certificate to check')
 
     parser.add_argument(
         "-C", "--ca-path", dest='ca_path', default='/etc/ssl/startcom.pem',
-        help='certificate autohrity path'
+        type=str, help='certificate autohrity path'
     )
 
     parser.add_argument(
         "-L", "--crl-path", dest='crl_path', default='/etc/ssl/crl.pem',
-        help='certificate autohrity path'
+        type=str, help='certificate autohrity path'
     )
 
     parser.add_argument(
