@@ -63,40 +63,40 @@ fi
 
 wan="$(get_wans ${wan4} ${wan6})"
 
-optional=""
+arguments=""
 if [ -n "$max_count" ]; then
-	optional="$optional -m '$max_count'"
+	arguments="$arguments -m '$max_count'"
 fi
 if [ -n "$log_file" ]; then
-	optional="$optional -l '$log_file'"
+	arguments="$arguments -l '$log_file'"
 fi
 if [ -n "$date_format" ]; then
-	optional="$optional -f '$date_format'"
+	arguments="$arguments -f '$date_format'"
 fi
 if [ -n "$log_rotate_conf" ]; then
-	optional="$optional -r '$log_rotate_conf'"
+	arguments="$arguments -r '$log_rotate_conf'"
 fi
 if [ -n "$wan" ]; then
-	optional="$optional -w $wan"
+	arguments="$arguments -w $wan"
 fi
 if [ -n "$certificate" ]; then
-	optional="$optional -c $certificate"
+	arguments="$arguments -c $certificate"
 fi
 if [ -n "$ca_path" ]; then
-	optional="$optional -C $ca_path"
+	arguments="$arguments -C $ca_path"
 fi
 if [ -n "$crl_path" ]; then
-	optional="$optional -L $crl_path"
+	arguments="$arguments -L $crl_path"
 fi
 if [ "$debug" = 1 ]; then
-	optional="$optional -d"
+	arguments="$arguments -d"
 fi
 if [ "$random_delay" = 0 ]; then
-	optional="$optional -n"
+	arguments="$arguments -n"
 fi
 if [ -n "$server_addr" ]; then
-	optional="$optional -s \"$server_addr\""
+	arguments="$arguments -s \"$server_addr\""
 fi
 
-eval nikola "$server_addr" "$optional"
+eval nikola "$arguments"
 exit $?
