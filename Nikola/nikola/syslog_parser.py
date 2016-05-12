@@ -42,7 +42,7 @@ def _parse_time_datetime(line, format, **kwargs):
         # Try to parse
         time = datetime.strptime(line, format)
         rest = ''
-    except (ValueError, TypeError), v:
+    except (ValueError, TypeError) as v:
         # Get the length of unmatched characters
         unmatched_len = len(v.message.partition('unconverted data remains: ')[2])
         try:

@@ -248,10 +248,10 @@ if __name__ == '__main__':
             logger.info("Sending records took %f seconds" % (time.time() - last_time))
             last_time = time.time()
 
-    except socket.error, e:
+    except socket.error as e:
         failed = True
         logger.error("socket: %s" % e)
-    except Exception, e:
+    except Exception as e:
         failed = True
         logger.error("Exception thrown: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     # publish whether the rules are applied
     try:
         publish_result(parsed, test_rule_id, failed)
-    except Exception, e:
+    except Exception as e:
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("error during rule test: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
