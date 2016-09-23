@@ -61,6 +61,10 @@ if [ ! -n "$wan6" ]; then
 	wan6=$(route -n -A inet6 | sed -ne 's/ *$//;/^::\/0  /s/.* //p')
 fi
 
+if [ " $1" = " -n" ]; then
+	force_no_timeout="yes"
+fi
+
 wan="$(get_wans ${wan4} ${wan6})"
 
 arguments=""
@@ -91,7 +95,7 @@ fi
 if [ "$debug" = 1 ]; then
 	arguments="$arguments -d"
 fi
-if [ "$random_delay" = 0 ]; then
+if [ "$random_delay" = 0 -o -n "$force_no_timeout" ]; then
 	arguments="$arguments -n"
 fi
 if [ -n "$server_addr" ]; then
