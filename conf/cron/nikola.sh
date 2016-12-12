@@ -92,14 +92,15 @@ fi
 if [ -n "$crl_path" ]; then
 	arguments="$arguments -L $crl_path"
 fi
-if [ "$debug" = 1 ]; then
-	arguments="$arguments -d"
-fi
 if [ "$random_delay" = 0 -o -n "$force_no_timeout" ]; then
 	arguments="$arguments -n"
 fi
 if [ -n "$server_addr" ]; then
 	arguments="$arguments -s \"$server_addr\""
+fi
+if [ "$debug" = 1 ]; then
+	arguments="$arguments -d"
+	echo nikola "$arguments"
 fi
 
 eval nikola "$arguments"
