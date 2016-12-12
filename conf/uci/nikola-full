@@ -10,7 +10,7 @@ config nikola 'server'
     option address 'https://api.turris.cz/fw'
     option max_count 1000
     option certificate '/etc/ssl/api.turris.pem'
-    option ca_path '/etc/ssl/startcom.pem'
+    option ca_path '/etc/ssl/turris.pem'
     option crl_path '/etc/ssl/crl.pem'
 
 config nikola 'logfile'

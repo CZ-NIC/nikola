@@ -110,7 +110,7 @@ if __name__ == '__main__':
         type=str, help='server certificate to check')
 
     parser.add_argument(
-        "-C", "--ca-path", dest='ca_path', default='/etc/ssl/startcom.pem',
+        "-C", "--ca-path", dest='ca_path', default='/etc/ssl/turris.pem',
         type=str, help='certificate autohrity path'
     )
 
