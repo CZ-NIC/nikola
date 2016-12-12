@@ -36,7 +36,6 @@ get_wans() {
 
 config_get server_addr server address
 config_get max_count server max_count
-config_get certificate server certificate
 config_get ca_path server ca_path
 config_get crl_path server crl_path
 
@@ -82,9 +81,6 @@ if [ -n "$log_rotate_conf" ]; then
 fi
 if [ -n "$wan" ]; then
 	arguments="$arguments -w $wan"
-fi
-if [ -n "$certificate" ]; then
-	arguments="$arguments -c $certificate"
 fi
 if [ -n "$ca_path" ]; then
 	arguments="$arguments -C $ca_path"

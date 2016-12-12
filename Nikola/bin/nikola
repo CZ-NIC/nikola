@@ -106,7 +106,7 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "-c", "--server-certificate", dest='certificate', default='/etc/ssl/api.turris.pem',
+        "-c", "--server-certificate", dest='certificate', default=None,
         type=str, help='server certificate to check')
 
     parser.add_argument(
@@ -184,8 +184,8 @@ if __name__ == '__main__':
         logger.info("Establishing connection took %f seconds" % (time.time() - last_time))
         last_time = time.time()
 
-        # Skip the certificate validation when the flag is checked
-        if not ignore_certificate:
+        # Skip the certificate validation when the flag is checked or the certificate is not set
+        if not ignore_certificate and certificate:
 
             # Validate the server certificate
             with open(certificate) as f:
