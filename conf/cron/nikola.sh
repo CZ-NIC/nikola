@@ -34,14 +34,6 @@ get_wans() {
 	done
 }
 
-config_get server_addr server address
-config_get max_count server max_count
-
-config_get log_file logfile path
-config_get date_format logfile date_format
-
-config_get log_rotate_conf logrotate path
-
 config_get_bool debug main debug 0
 config_get_bool random_delay main random_delay 1
 
@@ -66,31 +58,26 @@ wan="$(get_wans ${wan4} ${wan6})"
 
 arguments=""
 
+# server address
+arguments="$arguments -s https://api.turris.cz/fw"
 # setting the ca path
 arguments="$arguments -C /etc/ssl/turris.pem"
 # setting the crl path
 arguments="$arguments -L /etc/ssl/crl.pem"
+# max record count sent to the server
+arguments="$arguments -m 1000"
+# iptables log file
+arguments="$arguments -l /var/log/iptables"
+# log file date format
+arguments="$arguments -f %Y-%m-%dT%H:%M:%S"
+# path to logrotate config
+arguments="$arguments -r /etc/logrotate.d/iptables"
 
-if [ -n "$max_count" ]; then
-	arguments="$arguments -m '$max_count'"
-fi
-if [ -n "$log_file" ]; then
-	arguments="$arguments -l '$log_file'"
-fi
-if [ -n "$date_format" ]; then
-	arguments="$arguments -f '$date_format'"
-fi
-if [ -n "$log_rotate_conf" ]; then
-	arguments="$arguments -r '$log_rotate_conf'"
-fi
 if [ -n "$wan" ]; then
 	arguments="$arguments -w $wan"
 fi
 if [ "$random_delay" = 0 -o -n "$force_no_timeout" ]; then
 	arguments="$arguments -n"
-fi
-if [ -n "$server_addr" ]; then
-	arguments="$arguments -s \"$server_addr\""
 fi
 if [ "$debug" = 1 ]; then
 	arguments="$arguments -d"
