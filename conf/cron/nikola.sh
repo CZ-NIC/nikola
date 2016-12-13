@@ -36,8 +36,6 @@ get_wans() {
 
 config_get server_addr server address
 config_get max_count server max_count
-config_get ca_path server ca_path
-config_get crl_path server crl_path
 
 config_get log_file logfile path
 config_get date_format logfile date_format
@@ -67,6 +65,12 @@ fi
 wan="$(get_wans ${wan4} ${wan6})"
 
 arguments=""
+
+# setting the ca path
+arguments="$arguments -C /etc/ssl/turris.pem"
+# setting the crl path
+arguments="$arguments -L /etc/ssl/crl.pem"
+
 if [ -n "$max_count" ]; then
 	arguments="$arguments -m '$max_count'"
 fi
@@ -81,12 +85,6 @@ if [ -n "$log_rotate_conf" ]; then
 fi
 if [ -n "$wan" ]; then
 	arguments="$arguments -w $wan"
-fi
-if [ -n "$ca_path" ]; then
-	arguments="$arguments -C $ca_path"
-fi
-if [ -n "$crl_path" ]; then
-	arguments="$arguments -L $crl_path"
 fi
 if [ "$random_delay" = 0 -o -n "$force_no_timeout" ]; then
 	arguments="$arguments -n"
