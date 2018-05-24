@@ -20,8 +20,6 @@
 import logging
 import logging.handlers
 
-from . import __version__
-
 
 def get_logger(debug=False):
 
@@ -32,7 +30,7 @@ def get_logger(debug=False):
     sys_handler = logging.handlers.SysLogHandler(address="/dev/log")
 
     # set logging format
-    sys_handler.setFormatter(logging.Formatter('%(name)s: (v' + __version__ + ') %(msg)s'))
+    sys_handler.setFormatter(logging.Formatter('%(name)s: %(msg)s'))
     logger.addHandler(sys_handler)
 
     # add console handler

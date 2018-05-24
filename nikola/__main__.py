@@ -1,7 +1,6 @@
-#!/usr/bin/python
 #
 # Nikola - firewall log sender (a part of www.turris.cz project)
-# Copyright (C) 2013 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
+# Copyright (C) 2018 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,12 +30,29 @@ import sys
 import time
 import traceback
 import zlib
+import zmq
+import msgpack
 
 from nikola.filter import filter_records
 from nikola.logger import get_logger
-from nikola.rpc_wrapper import WrappedServer
 from nikola.syslog_parser import parse_syslog
 from nikola.tester import test_connect, publish_result
+
+FW_EXCLUDE_REGEXPS = (
+    r'^0\.0\.0\.0$',
+    r'^255\.255\.255\.255$',
+    r'^169\.254\.\d+\.\d+$',
+    r'^192\.168\.\d+\.\d+$',
+    r'^172\.1[6-9]\.\d+.\d+$',
+    r'^172\.2\d\.\d+.\d+$',
+    r'^172\.3[01]\.\d+.\d+$',
+    r'^10\.\d+\.\d+\.\d+$',
+    r'^fe80:',
+)
+
+FW_LOCAL_EXCLUDE_REGEXPS = (
+    r'^255\.255\.255\.255$',
+)
 
 
 logger = None
@@ -61,8 +77,13 @@ def main():
     # Parse the command line options
     parser = argparse.ArgumentParser(prog="nikola")
     parser.add_argument(
-        "-s", "--server-address", dest='server_address', default='https://api.turris.cz/fw',
-        type=str, help='set the server address'
+        "-s", "--socket", dest='socket_path', default='ipc:///tmp/sentinel_pull.sock',
+        type=str, help='set the socket path'
+    )
+
+    parser.add_argument(
+        "-T", "--topic", dest='topic', default='sentinel/collect/fwlogs',
+        type=str, help='topic'
     )
 
     parser.add_argument(
@@ -110,25 +131,6 @@ def main():
     )
 
     parser.add_argument(
-        "-c", "--server-certificate", dest='certificate', default=None,
-        type=str, help='server certificate to check')
-
-    parser.add_argument(
-        "-C", "--ca-path", dest='ca_path', default='/etc/ssl/turris.pem',
-        type=str, help='certificate autohrity path'
-    )
-
-    parser.add_argument(
-        "-L", "--crl-path", dest='crl_path', default='/etc/ssl/crl.pem',
-        type=str, help='certificate autohrity path'
-    )
-
-    parser.add_argument(
-        "-i", "--ignore-certificate", dest='ignore_certificate', action='store_true',
-        default=False, help='don\'t check the server certificate'
-    )
-
-    parser.add_argument(
         "-n", "--now", dest='now', action='store_true', default=False,
         help='don\'t use random sleep interval'
     )
@@ -143,15 +145,12 @@ def main():
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
     wans = [e.strip() for e in options.wans.split(",") if e.strip()] if options.wans else []
-    certificate = options.certificate
-    ignore_certificate = options.ignore_certificate
-    ca_path = options.ca_path
-    crl_path = options.crl_path
     now = options.now
     test_ip = options.test_ip
     test_rule_id = options.test_rule_id
     just_test = options.just_test
-    server_address = options.server_address
+    topic = options.topic
+    socket_path = options.socket_path
     if just_test:
         send_test_packet(test_ip)
         sys.exit()
@@ -171,34 +170,8 @@ def main():
 
     failed = False
     try:
-
-        # CA and crl validation
-        if not ignore_certificate:
-            # prepare ssl context here
-            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-            ssl_context.load_verify_locations(ca_path)
-            ssl_context.load_verify_locations(crl_path)
-            ssl_context.verify_mode = ssl.CERT_REQUIRED
-            ssl_context.verify_flags |= ssl.VERIFY_CRL_CHECK_CHAIN
-        else:
-            ssl_context = None
-
-        server = WrappedServer(server_address, ssl_context=ssl_context)
-        server.connect_when_not_connected()
-
         logger.info("Establishing connection took %f seconds" % (time.time() - last_time))
         last_time = time.time()
-
-        # Skip the certificate validation when the flag is checked or the certificate is not set
-        if not ignore_certificate and certificate:
-
-            # Validate the server certificate
-            with open(certificate) as f:
-                certificate = f.read()
-
-            server.check_certificate(certificate)
-            logger.info("Checking server certificates took %f seconds" % (time.time() - last_time))
-            last_time = time.time()
 
         if not wans:
             logger.warning('No WAN device was set. No data will be send to the server!')
@@ -206,7 +179,7 @@ def main():
         if os.path.exists(syslog_file) and wans:
             # logrotete the logs
             output = subprocess.check_output(
-                ('/usr/sbin/logrotate', '-s', '/tmp/logrotate-nikola.state', logrotate_conf, )
+                ('/usr/sbin/logrotate', '-f', logrotate_conf, )
             )
             logger.debug(("logrotate output: %s" % output))
 
@@ -223,39 +196,24 @@ def main():
             # To file to parse means no records
             parsed = []
 
-        init_res = server.init_session()
-        logger.debug(init_res)
-        logger.info("Session init took %f seconds" % (time.time() - last_time))
-        last_time = time.time()
-
-        exclude_remote_regexps = init_res.get('fw_exclude_regexp', [])
-        exclude_local_regexps = init_res.get('fw_local_exclude_regexp', [])
-
         logger.info(("Records parsed: %d" % len(parsed)))
         parsed = filter_records(
-            parsed, max_packet_count, exclude_remote_regexps, exclude_local_regexps)
+            parsed, max_packet_count, FW_EXCLUDE_REGEXPS, FW_LOCAL_EXCLUDE_REGEXPS)
         logger.info(("Records after filtering: %d" % len(parsed)))
         logger.info("Records filtering took %f seconds" % (time.time() - last_time))
         last_time = time.time()
 
         logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
-        if max_packet_count < len(parsed):
-            msg = "Too many records to send in one batch. (%d/%d)" % (len(parsed),
-                                                                      max_packet_count)
-            logger.error(msg)
-            logger.debug(server.api_turris_cz.report_error(msg))
-            logger.info("Sending error took %f seconds" % (time.time() - last_time))
-            last_time = time.time()
-        else:
-            # comporess the logs
-            compressed = base64.b64encode(zlib.compress(json.dumps(parsed).encode(), 1))
-            logger.info(server.api_turris_cz.firewall.store_logs(compressed))
-            logger.info("Sending records took %f seconds" % (time.time() - last_time))
-            last_time = time.time()
 
-    except socket.error as e:
-        failed = True
-        logger.error("socket: %s" % e)
+        with zmq.Context() as context, context.socket(zmq.PUSH) as zmq_sock:
+                zmq_sock.setsockopt(zmq.SNDTIMEO, 10000)
+                zmq_sock.setsockopt(zmq.LINGER, 10000)
+                zmq_sock.connect(socket_path)
+                zmq_sock.send_multipart([topic.encode(), msgpack.packb(parsed, use_bin_type=True)])
+
+        logger.info("Sending records took %f seconds" % (time.time() - last_time))
+        last_time = time.time()
+
     except Exception as e:
         failed = True
         logger.error("Exception thrown: %s" % e)

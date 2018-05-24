@@ -28,7 +28,7 @@ setup(
     version=__version__,
     author='CZ.NIC, z.s.p.o. (http://www.nic.cz/)',
     author_email='stepan.henek@nic.cz',
-    packages=['nikola', 'nikola.jsonrpclib', ],
+    packages=['nikola', ],
     url='https://gitlab.labs.nic.cz/turris/nikola',
     license='GPLv3+',
     description='nikola package for TurrisOS',

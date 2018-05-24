@@ -20,9 +20,6 @@
 
 . $IPKG_INSTROOT/lib/functions.sh
 
-# run get-api-crl to get the latest CRL
-/usr/bin/get-api-crl
-
 config_load nikola
 
 get_wans() {
@@ -58,12 +55,6 @@ wan="$(get_wans ${wan4} ${wan6})"
 
 arguments=""
 
-# server address
-arguments="$arguments -s https://api.turris.cz/fw"
-# setting the ca path
-arguments="$arguments -C /etc/ssl/turris.pem"
-# setting the crl path
-arguments="$arguments -L /etc/ssl/crl.pem"
 # max record count sent to the server
 arguments="$arguments -m 1000"
 # iptables log file
