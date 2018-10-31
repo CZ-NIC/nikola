@@ -1,4 +1,5 @@
 import re
+import functools
 
 
 def _match_any(address, regexps):
@@ -29,7 +30,7 @@ def filter_records(
 
     # when records reached the limit
     # throw out rules with 00000000 first
-    expandable_count = reduce(
+    expandable_count = functools.reduce(
         lambda x, y: x + 1 if _default_rule_in_data(y[1]) else x, res, 0)
     total_count = len(res)
     expandable_allowed = max_count - (total_count - expandable_count)

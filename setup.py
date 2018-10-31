@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
-# Nikola - firewall log sender (a part of www.turris.cz project)
-# Copyright (C) 2013 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
+# nikola - firewall log sender (a part of www.turris.cz project)
+# Copyright (C) 2018 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,32 +18,28 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #
 
-from distutils.core import setup
-import re
+from setuptools import setup
 
-try:
-    text = open("nikola/version.py", "rt").read()
-    res = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", text, re.M)
-    version = res.group(1)
-except:
-    version = "??"
+from nikola import __version__
 
 
 setup(
-    name='Nikola',
-    version=version,
+    name='nikola',
+    version=__version__,
     author='CZ.NIC, z.s.p.o. (http://www.nic.cz/)',
     author_email='stepan.henek@nic.cz',
     packages=['nikola', 'nikola.jsonrpclib', ],
-    scripts=['bin/nikola', ],
-    url='https://gitlab.labs.nic.cz/router/nikola',
-    license='LICENSE.txt',
-    description='Nikola package for opewrt routers',
+    url='https://gitlab.labs.nic.cz/turris/nikola',
+    license='GPLv3+',
+    description='nikola package for TurrisOS',
     long_description=open('README.txt').read(),
-    requires=[
+    install_requires=[
         'atsha204'
     ],
-    provides=[
-        'nikola'
-    ],
+    entry_points={
+        "console_scripts": [
+            "nikola = nikola.__main__:main",
+        ]
+    },
+    zip_safe=False,
 )

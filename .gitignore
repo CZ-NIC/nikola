@@ -1,5 +1,4 @@
-/Nikola/MANIFEST
-/Nikola/dist
+/dist
 /benchmark/workdir/
 *.pyc
 *.swp

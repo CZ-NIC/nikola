@@ -31,7 +31,7 @@ def test_connect(test_ip):
 
     # send a packet
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto(DATA, 0, (test_ip, port))
+    sock.sendto(DATA.encode(), 0, (test_ip, port))
 
 
 def _convert_date_string_to_long(string):

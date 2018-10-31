@@ -20,7 +20,7 @@ import atsha204
 import binascii
 import ssl
 
-from jsonrpclib import Server
+from nikola.jsonrpclib import Server
 
 RANDOM_LEN = 32
 
@@ -61,7 +61,8 @@ class WrappedServer(Server):
         if 'random' in res and len(res['random']) == 2 * RANDOM_LEN:
             self.challenge = res['random']
             self.session_id = res['session_id']
-            self.response = binascii.hexlify(atsha204.hmac(binascii.unhexlify(self.challenge)))
+            self.response = binascii.hexlify(
+                atsha204.hmac(binascii.unhexlify(self.challenge))).decode()
             self._set_cookie('sessionid="%s" response="%s"' % (self.session_id, self.response))
 
         return res

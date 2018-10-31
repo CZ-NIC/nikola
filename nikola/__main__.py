@@ -39,6 +39,9 @@ from nikola.syslog_parser import parse_syslog
 from nikola.tester import test_connect, publish_result
 
 
+logger = None
+
+
 def send_test_packet(test_ip):
     logger.debug("Trying to send a testing packet (it should be blocked by the firewall).")
     try:
@@ -52,7 +55,8 @@ def send_test_packet(test_ip):
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
 
-if __name__ == '__main__':
+
+def main():
 
     # Parse the command line options
     parser = argparse.ArgumentParser(prog="nikola")
@@ -131,6 +135,7 @@ if __name__ == '__main__':
 
     options = parser.parse_args()
 
+    global logger
     logger = get_logger(options.debug)
 
     syslog_file = options.syslog_file
@@ -243,7 +248,7 @@ if __name__ == '__main__':
             last_time = time.time()
         else:
             # comporess the logs
-            compressed = base64.b64encode(zlib.compress(json.dumps(parsed), 1))
+            compressed = base64.b64encode(zlib.compress(json.dumps(parsed).encode(), 1))
             logger.info(server.api_turris_cz.firewall.store_logs(compressed))
             logger.info("Sending records took %f seconds" % (time.time() - last_time))
             last_time = time.time()
@@ -268,3 +273,7 @@ if __name__ == '__main__':
 
     # try to send the testing packet
     send_test_packet(test_ip)
+
+
+if __name__ == '__main__':
+    main()

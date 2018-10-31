@@ -16,33 +16,4 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #
-
-import logging
-import logging.handlers
-
-from version import __version__
-
-
-def get_logger(debug=False):
-
-    # get logger name
-    logger = logging.getLogger("nikola")
-
-    # add syslog handler
-    sys_handler = logging.handlers.SysLogHandler(address="/dev/log")
-
-    # set logging format
-    sys_handler.setFormatter(logging.Formatter('%(name)s: (v' + __version__ + ') %(msg)s'))
-    logger.addHandler(sys_handler)
-
-    # add console handler
-    stream_handler = logging.StreamHandler()
-    logger.addHandler(stream_handler)
-
-    # set the loglevel
-    if debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-
-    return logger
+__version__ = '0.1'

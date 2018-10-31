@@ -16,13 +16,15 @@
 #
 
 
-import types
-from xmlrpclib import Transport as XMLTransport
-from xmlrpclib import SafeTransport as XMLSafeTransport
-from xmlrpclib import ServerProxy as XMLServerProxy
-from xmlrpclib import _Method as XML_Method
 import string
 import random
+
+
+from urllib.parse import urlparse
+from xmlrpc.client import Transport as XMLTransport
+from xmlrpc.client import SafeTransport as XMLSafeTransport
+from xmlrpc.client import ServerProxy as XMLServerProxy
+from xmlrpc.client import _Method as XML_Method
 
 # Library includes
 from nikola.jsonrpclib import config
@@ -64,7 +66,7 @@ def jdumps(obj, encoding='utf-8'):
     if cjson:
         return cjson.encode(obj)
     else:
-        return json.dumps(obj, encoding=encoding)
+        return json.dumps(obj)
 
 
 def jloads(json_string):
@@ -129,7 +131,7 @@ class JSONTarget(object):
         self.data.append(data)
 
     def close(self):
-        return ''.join(self.data)
+        return ''.join(e.decode() for e in self.data)
 
 
 class Transport(TransportMixIn, XMLTransport):
@@ -140,32 +142,8 @@ class SafeTransport(TransportMixIn, XMLSafeTransport):
     def __init__(self, *args, **kwargs):
         XMLSafeTransport.__init__(self, *args, **kwargs)
 
-from httplib import HTTP, HTTPConnection
-from socket import socket
 
 USE_UNIX_SOCKETS = False
-
-try:
-    from socket import AF_UNIX, SOCK_STREAM
-    USE_UNIX_SOCKETS = True
-except ImportError:
-    pass
-
-if (USE_UNIX_SOCKETS):
-
-    class UnixHTTPConnection(HTTPConnection):
-        def connect(self):
-            self.sock = socket(AF_UNIX, SOCK_STREAM)
-            self.sock.connect(self.host)
-
-    class UnixHTTP(HTTP):
-        _connection_class = UnixHTTPConnection
-
-    class UnixTransport(TransportMixIn, XMLTransport):
-        def make_connection(self, host):
-            import httplib
-            host, extra_headers, x509 = self.get_host_info(host)
-            return UnixHTTP(host)
 
 
 class ServerProxy(XMLServerProxy):
@@ -181,31 +159,14 @@ class ServerProxy(XMLServerProxy):
             version = config.version
         self.__version = version
 
-        if isinstance(uri, unicode):
-            uri = uri.encode('ISO-8859-1')
-
         # get the url
-        import urllib
-        schema, uri = urllib.splittype(uri)
-        if schema not in ('http', 'https', 'unix'):
+        parsed = urlparse(uri)
+        if parsed.scheme not in ('http', 'https'):
             raise IOError('Unsupported JSON-RPC protocol.')
-        if schema == 'unix':
-            if not USE_UNIX_SOCKETS:
-                # Don't like the "generic" Exception...
-                raise UnixSocketMissing("Unix sockets not available.")
-            self.__host = uri
-            self.__handler = '/'
-        else:
-            self.__host, self.__handler = urllib.splithost(uri)
-            if not self.__handler:
-                # Not sure if this is in the JSON spec?
-                #self.__handler = '/'
-                self.__handler == '/'
+        self.__host, self.__handler = parsed.netloc, parsed.path
 
         if transport is None:
-            if schema == 'unix':
-                transport = UnixTransport()
-            elif schema == 'https':
+            if parsed.scheme == 'https':
                 transport = SafeTransport(context=context)
             else:
                 transport = Transport()
@@ -229,12 +190,11 @@ class ServerProxy(XMLServerProxy):
 
     def _run_request(self, request, notify=None):
         history.add_request(request)
-
         response = self.__transport.request(
-            self.__host,
-            self.__handler,
-            request,
-            verbose=self.__verbose
+            self.host,
+            self.handler,
+            request.encode(),
+            verbose=self.__verbose,
         )
 
         # Here, the XMLRPC library translates a single list
@@ -265,6 +225,14 @@ class ServerProxy(XMLServerProxy):
     @property
     def host(self):
         return self.__host
+
+    @property
+    def handler(self):
+        return self.__handler
+
+    @property
+    def verbose(self):
+        return self.__verbose
 
 
 class _Method(XML_Method):
@@ -427,7 +395,7 @@ class Payload(dict):
         self.version = float(version)
 
     def request(self, method, params=[]):
-        if type(method) not in types.StringTypes:
+        if not isinstance(method, str):
             raise ValueError('Method name must be a string.')
         if not self.id:
             self.id = random_id()
@@ -463,6 +431,7 @@ class Payload(dict):
         error['error'] = {'code': code, 'message': message}
         return error
 
+
 def dumps(params=[], methodname=None, methodresponse=None,
           encoding=None, rpcid=None, version=None, notify=None):
     """
@@ -471,9 +440,9 @@ def dumps(params=[], methodname=None, methodresponse=None,
     """
     if not version:
         version = config.version
-    valid_params = (types.TupleType, types.ListType, types.DictType)
-    if methodname in types.StringTypes and \
-            type(params) not in valid_params and \
+    valid_params = (tuple, list, dict)
+    if isinstance(methodname, str) and \
+            not isinstance(params, valid_params) and \
             not isinstance(params, Fault):
         """
         If a method, and params are not in a listish or a Fault,
@@ -485,13 +454,13 @@ def dumps(params=[], methodname=None, methodresponse=None,
     payload = Payload(rpcid=rpcid, version=version)
     if not encoding:
         encoding = 'utf-8'
-    if type(params) is Fault:
+    if isinstance(params, Fault):
         response = payload.error(params.faultCode, params.faultString)
         return jdumps(response, encoding=encoding)
-    if type(methodname) not in types.StringTypes and methodresponse != True:
+    if not isinstance(methodname, str) and methodresponse is not True:
         raise ValueError('Method name must be a string, or methodresponse ' +
                          'must be set to True.')
-    if config.use_jsonclass == True:
+    if config.use_jsonclass:
         from nikola.jsonrpclib import jsonclass
         params = jsonclass.dump(params)
     if methodresponse is True:
@@ -500,7 +469,7 @@ def dumps(params=[], methodname=None, methodresponse=None,
         response = payload.response(params)
         return jdumps(response, encoding=encoding)
     request = None
-    if notify == True:
+    if notify:
         request = payload.notify(methodname, params)
     else:
         request = payload.request(methodname, params)
@@ -520,7 +489,7 @@ def loads(data):
     # if the above raises an error, the implementing server code
     # should return something like the following:
     # { 'jsonrpc':'2.0', 'error': fault.error(), id: None }
-    if config.use_jsonclass == True:
+    if config.use_jsonclass:
         from nikola.jsonrpclib import jsonclass
         result = jsonclass.load(result)
     return result
@@ -530,13 +499,13 @@ def check_for_errors(result):
     if not result:
         # Notification
         return result
-    if type(result) is not types.DictType:
+    if not isinstance(result, dict):
         raise TypeError('Response is not a dict.')
     if 'jsonrpc' in result.keys() and float(result['jsonrpc']) > 2.0:
         raise NotImplementedError('JSON-RPC version not yet supported.')
     if 'result' not in result.keys() and 'error' not in result.keys():
         raise ValueError('Response does not have a result or error key.')
-    if 'error' in result.keys() and result['error'] != None:
+    if 'error' in result.keys() and result['error'] is not None:
         code = result['error']['code']
         message = result['error']['message']
         raise ProtocolError((code, message))
@@ -544,11 +513,11 @@ def check_for_errors(result):
 
 
 def isbatch(result):
-    if type(result) not in (types.ListType, types.TupleType):
+    if not isinstance(result, (list, tuple)):
         return False
     if len(result) < 1:
         return False
-    if type(result[0]) is not types.DictType:
+    if not isinstance(result[0], dict):
         return False
     if 'jsonrpc' not in result[0].keys():
         return False
@@ -565,7 +534,7 @@ def isnotification(request):
     if 'id' not in request.keys():
         # 2.0 notification
         return True
-    if request['id'] == None:
+    if request['id'] is None:
         # 1.0 notification
         return True
     return False
