@@ -18,18 +18,15 @@
 #
 
 
-import base64
-import json
 import argparse
 import os
+import ipaddress
 import random
 import socket
-import ssl
 import subprocess
 import sys
 import time
 import traceback
-import zlib
 import zmq
 import msgpack
 
@@ -37,22 +34,6 @@ from nikola.filter import filter_records
 from nikola.logger import get_logger
 from nikola.syslog_parser import parse_syslog
 from nikola.tester import test_connect, publish_result
-
-FW_EXCLUDE_REGEXPS = (
-    r'^0\.0\.0\.0$',
-    r'^255\.255\.255\.255$',
-    r'^169\.254\.\d+\.\d+$',
-    r'^192\.168\.\d+\.\d+$',
-    r'^172\.1[6-9]\.\d+.\d+$',
-    r'^172\.2\d\.\d+.\d+$',
-    r'^172\.3[01]\.\d+.\d+$',
-    r'^10\.\d+\.\d+\.\d+$',
-    r'^fe80:',
-)
-
-FW_LOCAL_EXCLUDE_REGEXPS = (
-    r'^255\.255\.255\.255$',
-)
 
 
 logger = None
@@ -198,7 +179,9 @@ def main():
 
         logger.info(("Records parsed: %d" % len(parsed)))
         parsed = filter_records(
-            parsed, max_packet_count, FW_EXCLUDE_REGEXPS, FW_LOCAL_EXCLUDE_REGEXPS)
+            parsed, max_packet_count,
+            lambda ip: ipaddress.ip_address(ip).is_global,
+            lambda ip: ipaddress.ip_address(ip) != ipaddress.ip_address("255.255.255.255"))
         logger.info(("Records after filtering: %d" % len(parsed)))
         logger.info("Records filtering took %f seconds" % (time.time() - last_time))
         last_time = time.time()

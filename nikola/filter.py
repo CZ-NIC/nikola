@@ -2,12 +2,6 @@ import re
 import functools
 
 
-def _match_any(address, regexps):
-    for regexp in regexps:
-        if re.match(regexp, address):
-            return True
-    return False
-
 
 def _default_rule_in_data(data):
     # rule = 000...0
@@ -15,7 +9,7 @@ def _default_rule_in_data(data):
 
 
 def filter_records(
-        records, max_count, fw_remote_exclude_regexp, fw_local_exlude_regexp):
+        records, max_count, fw_remote_check, fw_local_check):
 
     # filter out the exclude regexps
     res = []
@@ -24,8 +18,7 @@ def filter_records(
         splitted = data.split("|")
         remote_addr = splitted[1]
         local_addr = splitted[3]
-        if not _match_any(remote_addr, fw_remote_exclude_regexp) and \
-                not _match_any(local_addr, fw_local_exlude_regexp):
+        if fw_remote_filter(remote_addr) and fw_local_filter(local_addr):
             res.append(record)
 
     # when records reached the limit
