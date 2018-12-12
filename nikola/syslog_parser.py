@@ -50,7 +50,7 @@ def _parse_time_datetime(line, format, **kwargs):
             time = datetime.strptime(line[:-unmatched_len], format)
         except (ValueError, TypeError):
             # When second parsing return None as date
-            return None, line
+            return None, None, line
 
         rest = line[len(line) - unmatched_len:]
 
@@ -63,15 +63,15 @@ def _parse_time_datetime(line, format, **kwargs):
     if kwargs:
         time = time.replace(**kwargs)
 
-    return time.strftime('%Y-%m-%d %H:%M:%S' + timezone), rest
+    return time.strftime('%Y-%m-%d %H:%M:%S' + timezone), int(time.timestamp()), rest
 
 
 def _parse_line(line, wans, date_format, **kwargs):
 
     # Cut the date
-    date, rest = _parse_time_datetime(line, date_format, **kwargs)
+    date_str, date_int, rest = _parse_time_datetime(line, date_format, **kwargs)
 
-    if not date:
+    if not date_str:
         return None
 
     # Cut another part up to attributes
@@ -103,31 +103,28 @@ def _parse_line(line, wans, date_format, **kwargs):
         return None
 
     # Check whether wan interface is present (otherwise considered as a local traffic)
+    res = {}
+    res["event_time"] = date_str
+    res["ts"] = date_int
+    res["packet_count"] = 1
+    res["flags"] = "{0:09b}".format(flags)
+    res["rule_id"] = rule_id
     if parsed.get('IN', '') in wans:
-        direction = 'I'
-        raddr = parsed.get('SRC', '')
-        rport = parsed.get('SPT', '')
-        laddr = parsed.get('DST', '')
-        lport = parsed.get('DPT', '')
+        res["dir"] = 'I'
+        res["ip"] = parsed.get('SRC', '')
+        res["port"] = parsed.get('SPT', '')
+        res["local_ip"] = parsed.get('DST', '')
+        res["local_port"] = parsed.get('DPT', '')
     elif parsed.get('OUT', '') in wans:
-        direction = 'O'
-        raddr = parsed.get('DST', '')
-        rport = parsed.get('DPT', '')
-        laddr = parsed.get('SRC', '')
-        lport = parsed.get('SPT', '')
+        res["dir"] = 'O'
+        res["ip"] = parsed.get('DST', '')
+        res["port"] = parsed.get('DPT', '')
+        res["local_ip"] = parsed.get('SRC', '')
+        res["local_port"] = parsed.get('SPT', '')
     else:
         return None
 
-    return date, "|".join((
-        direction,
-        raddr,
-        rport,
-        laddr,
-        lport,
-        parsed['PROTO'],
-        "{0:09b}".format(flags),
-        rule_id,
-    ))
+    return res
 
 
 def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwargs):
@@ -138,12 +135,12 @@ def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwa
         for line in f:
             parsed_line = _parse_line(line, wans, date_format, **kwargs)
             if parsed_line:
-                date, parsed = parsed_line
+                parsed = parsed_line
                 # Same packets in the sequence
                 if last and last == parsed:
-                    res[-1][2] += 1
+                    res[-1]["packet_count"] += 1
                 else:
-                    res.append([date, parsed, 1])
+                    res.append(parsed)
                     last = parsed
             else:
                 logger and logger.warning("Failed to parse line: '%s'" % line)

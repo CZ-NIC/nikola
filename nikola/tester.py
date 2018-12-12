@@ -44,14 +44,14 @@ def publish_result(records, rule_id, failed):
 
     # Try to parse the file
     last_server_time = ""
-    last_packet_time = ""
+    last_packet_timestamp = 0
     try:
         with open(TEST_RESULT_FILE, 'r') as f:
             for line in f.readlines():
                 if line.startswith('last working time:'):
                     last_server_time = line.split(":", 1)[1].strip()
-                if line.startswith('last packet test success time:'):
-                    last_packet_time = line.split(":", 1)[1].strip()
+                if line.startswith('last packet test success timestamp:'):
+                    last_packet_timestamp = int(line.split(":", 1)[1].strip() or 0)
 
     except IOError:
         file_exists = False
@@ -71,15 +71,12 @@ def publish_result(records, rule_id, failed):
     # Testing packet
     success_packet_times = []
     for record in records:
-        parsed_time, data, count = record
-        parsed_rule_id = data.rsplit("|", 1)[1].strip()
+        parsed_rule_id = record["rule_id"]
         if int(parsed_rule_id, 16) == int(rule_id, 16):
-            success_packet_times.append(parsed_time)
+            success_packet_times.append(record["ts"])
 
-    last_packet_time = max(success_packet_times) if success_packet_times else last_packet_time
+    last_packet_timestamp = max(success_packet_times) if success_packet_times else last_packet_timestamp
     packet_working = True if success_packet_times else False
-    last_packet_timestamp = _convert_date_string_to_long(last_packet_time) \
-        if last_packet_time else ""
 
     # When the result file doesn't exist it means that nikola is run for the first time
     # so no testing packet was send and we can't determine the fw state yet
@@ -91,6 +88,5 @@ def publish_result(records, rule_id, failed):
             'last working time: %s\n' % last_server_time,
             'last working timestamp: %s\n' % last_server_timestamp,
             'packet test working: %s\n' % packet_answer,
-            'last packet test success time: %s\n' % last_packet_time,
             'last packet test success timestamp: %s\n' % last_packet_timestamp,
         ])
