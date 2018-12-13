@@ -33,9 +33,6 @@ setup(
     license='GPLv3+',
     description='nikola package for TurrisOS',
     long_description=open('README.txt').read(),
-    install_requires=[
-        'atsha204'
-    ],
     entry_points={
         "console_scripts": [
             "nikola = nikola.__main__:main",
