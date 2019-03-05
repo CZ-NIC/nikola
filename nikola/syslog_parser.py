@@ -135,12 +135,13 @@ def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwa
         for line in f:
             parsed = _parse_line(line, wans, date_format, **kwargs)
             if parsed:
-                # Same packets in the sequence
+                # Same packets in the sequence; We should compare only a subset
+                # of the dictionary fields, however this would be enough
                 if last == parsed:
-                    res[-1]["packet_count"] += 1
+                    res[-1]["packet_count"] += parsed["packet_count"]
                 else:
                     res.append(parsed)
-                    last = parsed
+                last = parsed
             else:
                 logger and logger.warning("Failed to parse line: '%s'" % line)
 
