@@ -109,6 +109,7 @@ def _parse_line(line, wans, date_format, **kwargs):
     res["packet_count"] = 1
     res["flags"] = "{0:09b}".format(flags)
     res["rule_id"] = rule_id
+    res["protocol"] = parsed.get('PROTO', '')
     if parsed.get('IN', '') in wans:
         res["dir"] = 'I'
         res["ip"] = parsed.get('SRC', '')
