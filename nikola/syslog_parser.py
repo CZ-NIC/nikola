@@ -66,6 +66,17 @@ def _parse_time_datetime(line, format, **kwargs):
     return time.strftime('%Y-%m-%d %H:%M:%S' + timezone), int(time.timestamp()), rest
 
 
+def _parse_port_to_int(port_str):
+    """Return converted string to integer
+    If convert fails, return 0
+    """
+    try:
+        port = int(port_str)
+    except ValueError:
+        port = 0
+    return port
+
+
 def _parse_line(line, wans, date_format, **kwargs):
 
     # Cut the date
@@ -113,15 +124,15 @@ def _parse_line(line, wans, date_format, **kwargs):
     if parsed.get('IN', '') in wans:
         res["dir"] = 'I'
         res["ip"] = parsed.get('SRC', '')
-        res["port"] = parsed.get('SPT', '')
+        res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
         res["local_ip"] = parsed.get('DST', '')
-        res["local_port"] = parsed.get('DPT', '')
+        res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
     elif parsed.get('OUT', '') in wans:
         res["dir"] = 'O'
         res["ip"] = parsed.get('DST', '')
-        res["port"] = parsed.get('DPT', '')
+        res["port"] = _parse_port_to_int(parsed.get('DPT', ''))
         res["local_ip"] = parsed.get('SRC', '')
-        res["local_port"] = parsed.get('SPT', '')
+        res["local_port"] = _parse_port_to_int(parsed.get('SPT', ''))
     else:
         return None
 
