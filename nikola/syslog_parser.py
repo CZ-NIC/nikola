@@ -133,11 +133,10 @@ def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwa
     with open(path) as f:
         last = None
         for line in f:
-            parsed_line = _parse_line(line, wans, date_format, **kwargs)
-            if parsed_line:
-                parsed = parsed_line
+            parsed = _parse_line(line, wans, date_format, **kwargs)
+            if parsed:
                 # Same packets in the sequence
-                if last and last == parsed:
+                if last == parsed:
                     res[-1]["packet_count"] += 1
                 else:
                     res.append(parsed)
