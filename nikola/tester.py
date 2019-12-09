@@ -51,7 +51,7 @@ def publish_result(records, rule_id, failed):
                 if line.startswith('last working time:'):
                     last_server_time = line.split(":", 1)[1].strip()
                 if line.startswith('last packet test success timestamp:'):
-                    last_packet_timestamp = int(line.split(":", 1)[1].strip() or 0)
+                    last_packet_timestamp = int(float(line.split(":", 1)[1].strip() or 0))
 
     except IOError:
         file_exists = False
