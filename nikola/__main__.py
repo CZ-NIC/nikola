@@ -125,7 +125,6 @@ def main():
     max_packet_count = options.max
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
-    wans = [e.strip() for e in options.wans.split(",") if e.strip()] if options.wans else []
     now = options.now
     test_ip = options.test_ip
     test_rule_id = options.test_rule_id
@@ -139,7 +138,6 @@ def main():
     parsed = []
 
     logger.debug("Nikola synchronization is starting...")
-    logger.info("recognized WAN interfaces: " + ", ".join(wans))
 
     if not now:
         # sleep for random amount of time up to one minute
@@ -154,10 +152,7 @@ def main():
         logger.info("Establishing connection took %f seconds" % (time.time() - last_time))
         last_time = time.time()
 
-        if not wans:
-            logger.warning('No WAN device was set. No data will be send to the server!')
-
-        if os.path.exists(syslog_file) and wans:
+        if os.path.exists(syslog_file):
             # logrotete the logs
             output = subprocess.check_output(
                 ('/usr/sbin/logrotate', '-f', logrotate_conf, )
@@ -168,7 +163,7 @@ def main():
             last_time = time.time()
 
             # Parse syslog
-            parsed = parse_syslog("%s.1" % syslog_file, wans, syslog_date_format, logger=logger)
+            parsed = parse_syslog("%s.1" % syslog_file, syslog_date_format, logger=logger)
 
             logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
             last_time = time.time()

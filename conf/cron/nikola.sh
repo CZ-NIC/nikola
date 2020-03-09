@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Nikola - firewall log sender (a part of www.turris.cz project)
-# Copyright (C) 2013 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
+# Copyright (C) 2013-2020 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,63 +17,42 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #
+set -e
 
-. $IPKG_INSTROOT/lib/functions.sh
+debug=0
+random_delay=1
 
-config_load nikola
+while getopts "nd" opt; do
+	case "$opt" in
+		d)
+			debug=1
+			;;
+		n)
+			random_delay=0
+			;;
+		*)
+			echo "Usage: $0 [-d] [-n]"
+			exit 1
+			;;
+	esac
+done
 
-get_wans() {
-	# Unify them and remove duplicates
-	local list=$(echo "$@" | sed -e 's/  */ /g;s/ /\n/g' | sort -u)
-	# return comma-separeted list of wans
-	for iface in $list; do
-		echo -n "$iface",
-	done
-}
-
-config_get_bool debug main debug 0
-config_get_bool random_delay main random_delay 1
-
-config_get wan4 main wan_ifname
-config_get wan6 main wan6_ifname
-
-if [ ! -n "$wan4" ]; then
-	# Look into the routing tables to guess WAN4 interfaces
-	wan4=$(route -n | sed -ne 's/ *$//;/^0\.0\.0\.0  *[0-9.][0-9.]*  *0\.0\.0\.0/s/.* //p')
-fi
-
-if [ ! -n "$wan6" ]; then
-	# Look into the routing tables to guess WAN6 interfaces
-	wan6=$(route -n -A inet6 | sed -ne 's/ *$//;/^::\/0  /s/.* //p')
-fi
-
-if [ " $1" = " -n" ]; then
-	force_no_timeout="yes"
-fi
-
-wan="$(get_wans ${wan4} ${wan6})"
-
-arguments=""
+# Reset all arguments
+set --
 
 # max record count sent to the server
-arguments="$arguments -m 1000"
+set "$@" -m 1000
 # iptables log file
-arguments="$arguments -l /var/log/iptables"
+set "$@" -l "/var/log/iptables"
 # log file date format
-arguments="$arguments -f %Y-%m-%dT%H:%M:%S"
+set "$@" -f "%Y-%m-%dT%H:%M:%S"
 # path to logrotate config
-arguments="$arguments -r /etc/logrotate.d/iptables"
+set "$@" -r "/etc/logrotate.d/iptables"
 
-if [ -n "$wan" ]; then
-	arguments="$arguments -w $wan"
-fi
-if [ "$random_delay" = 0 -o -n "$force_no_timeout" ]; then
-	arguments="$arguments -n"
-fi
-if [ "$debug" = 1 ]; then
-	arguments="$arguments -d"
-	echo nikola "$arguments"
-fi
+[ "$random_delay" = 0 ] && set "$@" -n
+[ "$debug" = 1 ] && {
+	set "$@" -d
+	echo nikola "$@"
+}
 
-eval nikola "$arguments"
-exit $?
+exec nikola "$@"

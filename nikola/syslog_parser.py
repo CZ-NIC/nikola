@@ -77,7 +77,7 @@ def _parse_port_to_int(port_str):
     return port
 
 
-def _parse_line(line, wans, date_format, **kwargs):
+def _parse_line(line, date_format, **kwargs):
 
     # Cut the date
     date_str, date_int, rest = _parse_time_datetime(line, date_format, **kwargs)
@@ -113,7 +113,6 @@ def _parse_line(line, wans, date_format, **kwargs):
     if 'PROTO' not in parsed:
         return None
 
-    # Check whether wan interface is present (otherwise considered as a local traffic)
     res = {}
     res["event_time"] = date_str
     res["ts"] = date_int
@@ -121,31 +120,22 @@ def _parse_line(line, wans, date_format, **kwargs):
     res["flags"] = "{0:09b}".format(flags)
     res["rule_id"] = rule_id
     res["protocol"] = parsed.get('PROTO', '')
-    if parsed.get('IN', '') in wans:
-        res["dir"] = 'I'
-        res["ip"] = parsed.get('SRC', '')
-        res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
-        res["local_ip"] = parsed.get('DST', '')
-        res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
-    elif parsed.get('OUT', '') in wans:
-        res["dir"] = 'O'
-        res["ip"] = parsed.get('DST', '')
-        res["port"] = _parse_port_to_int(parsed.get('DPT', ''))
-        res["local_ip"] = parsed.get('SRC', '')
-        res["local_port"] = _parse_port_to_int(parsed.get('SPT', ''))
-    else:
-        return None
+    res["dir"] = 'I'
+    res["ip"] = parsed.get('SRC', '')
+    res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
+    res["local_ip"] = parsed.get('DST', '')
+    res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
 
     return res
 
 
-def parse_syslog(path, wans, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwargs):
+def parse_syslog(path, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwargs):
     res = []
 
     with open(path) as f:
         last = None
         for line in f:
-            parsed = _parse_line(line, wans, date_format, **kwargs)
+            parsed = _parse_line(line, date_format, **kwargs)
             if parsed:
                 # Same packets in the sequence; We should compare only a subset
                 # of the dictionary fields, however this would be enough
