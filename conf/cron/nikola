@@ -1,2 +1,2 @@
 MAILTO=""
-*/15 * * * * root /usr/share/nikola/bin/nikola.sh
+*/15 * * * * root /usr/bin/nikola --random-sleep

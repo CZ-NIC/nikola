@@ -112,8 +112,13 @@ def main():
     )
 
     parser.add_argument(
-        "-n", "--now", dest='now', action='store_true', default=False,
-        help='don\'t use random sleep interval'
+        "-n", "--now", dest='now', action='store_true', default=True,
+        help='don\'t use random sleep interval (this is default behavior)'
+    )
+
+    parser.add_argument(
+        "--random-sleep", dest='now', action='store_false', default=True,
+        help='Use random sleep interval'
     )
 
     options = parser.parse_args()
