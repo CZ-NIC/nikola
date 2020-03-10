@@ -50,7 +50,7 @@ def _parse_time_datetime(line, format, **kwargs):
             time = datetime.strptime(line[:-unmatched_len], format)
         except (ValueError, TypeError):
             # When second parsing return None as date
-            return None, None, line
+            return None, line
 
         rest = line[len(line) - unmatched_len:]
 
@@ -63,7 +63,7 @@ def _parse_time_datetime(line, format, **kwargs):
     if kwargs:
         time = time.replace(**kwargs)
 
-    return time.strftime('%Y-%m-%d %H:%M:%S' + timezone), int(time.timestamp()), rest
+    return int(time.timestamp()), rest
 
 
 def _parse_port_to_int(port_str):
@@ -77,12 +77,14 @@ def _parse_port_to_int(port_str):
     return port
 
 
-def _parse_line(line, date_format, **kwargs):
+def _parse_line(line, date_format, logger=None, **kwargs):
 
     # Cut the date
-    date_str, date_int, rest = _parse_time_datetime(line, date_format, **kwargs)
+    date_int, rest = _parse_time_datetime(line, date_format, **kwargs)
 
-    if not date_str:
+    if date_int is None:
+        if logger:
+            logger.warning("Failed to parse date: %s", line)
         return None
 
     # Cut another part up to attributes
@@ -90,22 +92,14 @@ def _parse_line(line, date_format, **kwargs):
     if len(splitted) != 2:
         return None
     prefix = splitted[0].rsplit(' ', 1)[1]
-
-    # prefix should look like turris[-1A5B7D]:
-    if 'turris' not in prefix:
-        # don't send other logged packets
-        return None
-    rule_id = prefix.rsplit('-', 1)[1] if '-' in prefix else ''
+    direction = prefix[2]
 
     # Parse the rest
     parsed = {}
-    flags = 0b0
     for x in splitted[1].split(' '):
         if '=' in x:
             key, val = x.split('=', 1)
             parsed[key] = val
-        else:
-            flags |= TCP_FLAGS.get(x, 0b0)
 
     # When the protocol is missing it might be caused by that
     # syslog hasn't put the whole line into log file yet
@@ -114,18 +108,24 @@ def _parse_line(line, date_format, **kwargs):
         return None
 
     res = {}
-    res["event_time"] = date_str
     res["ts"] = date_int
-    res["packet_count"] = 1
-    res["flags"] = "{0:09b}".format(flags)
-    res["rule_id"] = rule_id
     res["protocol"] = parsed.get('PROTO', '')
-    res["dir"] = 'I'
-    res["ip"] = parsed.get('SRC', '')
-    res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
-    res["local_ip"] = parsed.get('DST', '')
-    res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
-
+    if direction == "in":
+        res["dir"] = 'I'
+        res["ip"] = parsed.get('SRC', '')
+        res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
+        res["local_ip"] = parsed.get('DST', '')
+        res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
+    elif direction == "out":
+        res["dir"] = 'O'
+        res["ip"] = parsed.get('DST', '')
+        res["port"] = _parse_port_to_int(parsed.get('DPT', ''))
+        res["local_ip"] = parsed.get('SRC', '')
+        res["local_port"] = _parse_port_to_int(parsed.get('SPT', ''))
+    else:
+        if logger is not None:
+            logger.debug("Unknown direction '%s' for line: %s", direction, line)
+        return None
     return res
 
 
@@ -133,17 +133,10 @@ def parse_syslog(path, date_format='%Y-%m-%dT%H:%M:%S', logger=None, **kwargs):
     res = []
 
     with open(path) as f:
-        last = None
         for line in f:
-            parsed = _parse_line(line, date_format, **kwargs)
+            parsed = _parse_line(line, date_format, logger, **kwargs)
             if parsed:
-                # Same packets in the sequence; We should compare only a subset
-                # of the dictionary fields, however this would be enough
-                if last == parsed:
-                    res[-1]["packet_count"] += parsed["packet_count"]
-                else:
-                    res.append(parsed)
-                last = parsed
+                res.append(parsed)
             else:
                 logger and logger.warning("Failed to parse line: '%s'" % line)
 
