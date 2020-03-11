@@ -2,8 +2,8 @@
 #it's left here for safety - if nikola doesn't work (for any reason), log gets rotated anyway
 
 /var/log/iptables {
-     weekly
-     maxsize 10M
-     copytruncate
-     rotate 1
+	hourly
+	maxsize 10M
+	postrotate /etc/init.d/syslog-ng restart
+	rotate 1
 }
