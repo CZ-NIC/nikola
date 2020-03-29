@@ -1,9 +1,0 @@
-#this log should not be rotated automatically, but rather manually by nikola script
-#it's left here for safety - if nikola doesn't work (for any reason), log gets rotated anyway
-
-/var/log/iptables {
-     weekly
-     maxsize 10M
-     copytruncate
-     rotate 1
-}

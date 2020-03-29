@@ -1,7 +1,0 @@
-package 'nikola'
-
-config nikola 'main'
-    option debug false
-    #list wan_ifname eth2
-    #list wan6_ifname teredo
-    #option random_delay true
