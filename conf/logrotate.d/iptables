@@ -4,6 +4,8 @@
 /var/log/iptables {
 	hourly
 	maxsize 10M
-	postrotate /etc/init.d/syslog-ng restart
+	postrotate
+		/etc/init.d/syslog-ng restart
+	endscript
 	rotate 1
 }
