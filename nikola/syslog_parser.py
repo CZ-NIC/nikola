@@ -94,6 +94,9 @@ def _parse_line(line, date_format, logger=None, **kwargs):
     prefix = splitted[0].rsplit(' ', 1)[1]
     direction = prefix[2]
 
+    if direction != "in":
+        return
+
     # Parse the rest
     parsed = {}
     for x in splitted[1].split(' '):
@@ -110,22 +113,10 @@ def _parse_line(line, date_format, logger=None, **kwargs):
     res = {}
     res["ts"] = date_int
     res["protocol"] = parsed.get('PROTO', '')
-    if direction == "in":
-        res["dir"] = 'I'
-        res["ip"] = parsed.get('SRC', '')
-        res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
-        res["local_ip"] = parsed.get('DST', '')
-        res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
-    elif direction == "out":
-        res["dir"] = 'O'
-        res["ip"] = parsed.get('DST', '')
-        res["port"] = _parse_port_to_int(parsed.get('DPT', ''))
-        res["local_ip"] = parsed.get('SRC', '')
-        res["local_port"] = _parse_port_to_int(parsed.get('SPT', ''))
-    else:
-        if logger is not None:
-            logger.debug("Unknown direction '%s' for line: %s", direction, line)
-        return None
+    res["ip"] = parsed.get('SRC', '')
+    res["port"] = _parse_port_to_int(parsed.get('SPT', ''))
+    res["local_ip"] = parsed.get('DST', '')
+    res["local_port"] = _parse_port_to_int(parsed.get('DPT', ''))
     return res
 
 
