@@ -20,7 +20,6 @@
 
 import argparse
 import os
-import ipaddress
 import random
 import socket
 import subprocess
@@ -30,7 +29,6 @@ import traceback
 import zmq
 import msgpack
 
-from nikola.filter import filter_records
 from nikola.logger import get_logger
 from nikola.syslog_parser import parse_syslog
 from nikola.tester import test_connect, publish_result
@@ -178,15 +176,6 @@ def main():
             parsed = []
 
         logger.info(("Records parsed: %d" % len(parsed)))
-        parsed = filter_records(
-            parsed, max_packet_count,
-            lambda ip: ipaddress.ip_address(ip).is_global,
-            lambda ip: ipaddress.ip_address(ip) != ipaddress.ip_address("255.255.255.255"))
-        logger.info(("Records after filtering: %d" % len(parsed)))
-        logger.info("Records filtering took %f seconds" % (time.time() - last_time))
-        last_time = time.time()
-
-        logger.debug(("First record: %s" % parsed[0]) if parsed else 'No records')
 
         with zmq.Context() as context, context.socket(zmq.PUSH) as zmq_sock:
                 zmq_sock.setsockopt(zmq.SNDTIMEO, 10000)
