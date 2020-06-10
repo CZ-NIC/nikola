@@ -21,7 +21,6 @@
 import argparse
 import os
 import random
-import socket
 import subprocess
 import sys
 import time
@@ -31,24 +30,9 @@ import msgpack
 
 from nikola.logger import get_logger
 from nikola.syslog_parser import parse_syslog
-from nikola.tester import test_connect, publish_result
 
 
 logger = None
-
-
-def send_test_packet(test_ip):
-    logger.debug("Trying to send a testing packet (it should be blocked by the firewall).")
-    try:
-        test_connect(test_ip)
-        logger.error("turris firewall rules might not be active")
-    except socket.error as e:
-        # sending should failed when the rules are applied
-        logger.debug("Failed to send the testing packet (this is expected - blocked by firewall)")
-    except Exception as e:
-        logger.error("failed to send the testing packet: %s" % e)
-        e_type, e_value, e_traceback = sys.exc_info()
-        logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
 
 
 def main():
@@ -68,10 +52,6 @@ def main():
     parser.add_argument(
         "-l", "--log-file", dest='syslog_file', default='/var/log/iptables', type=str,
         help='specify the syslog file to be parsed'
-    )
-
-    parser.add_argument(
-        "-m", "--max", dest='max', default=1000, help='max record count to be sent', type=int,
     )
 
     parser.add_argument(
@@ -95,21 +75,6 @@ def main():
     )
 
     parser.add_argument(
-        "-t", "--test-ip", dest='test_ip', default='192.0.2.84', type=str,
-        help='the address which is used for rule testing purposes'
-    )
-
-    parser.add_argument(
-        "-u", "--test-ruleid", dest='test_rule_id', default='00DEB060', type=str,
-        help='this rule id is used for a testing purposes'
-    )
-
-    parser.add_argument(
-        "-j", "--just-test", dest='just_test', action='store_true', default=False,
-        help='just try to send a test packet'
-    )
-
-    parser.add_argument(
         "-n", "--now", dest='now', action='store_true', default=True,
         help='don\'t use random sleep interval (this is default behavior)'
     )
@@ -125,18 +90,11 @@ def main():
     logger = get_logger(options.debug)
 
     syslog_file = options.syslog_file
-    max_packet_count = options.max
     syslog_date_format = options.date_format
     logrotate_conf = options.logrotate_conf
     now = options.now
-    test_ip = options.test_ip
-    test_rule_id = options.test_rule_id
-    just_test = options.just_test
     topic = options.topic
     socket_path = options.socket_path
-    if just_test:
-        send_test_packet(test_ip)
-        sys.exit()
 
     parsed = []
 
@@ -148,14 +106,9 @@ def main():
         logger.debug("Sleeping for %d seconds." % seconds)
         time.sleep(seconds)
 
-    last_time = time.time()
-
-    failed = False
     try:
-        logger.info("Establishing connection took %f seconds" % (time.time() - last_time))
-        last_time = time.time()
-
         if os.path.exists(syslog_file):
+            last_time = time.time()
             # logrotete the logs
             output = subprocess.check_output(
                 ('/usr/sbin/logrotate', '-f', logrotate_conf, )
@@ -169,13 +122,13 @@ def main():
             parsed = parse_syslog("%s.1" % syslog_file, syslog_date_format, logger=logger)
 
             logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
-            last_time = time.time()
 
         else:
             # To file to parse means no records
             parsed = []
 
         logger.info(("Records parsed: %d" % len(parsed)))
+        last_time = time.time()
 
         with zmq.Context() as context, context.socket(zmq.PUSH) as zmq_sock:
                 zmq_sock.setsockopt(zmq.SNDTIMEO, 10000)
@@ -184,25 +137,11 @@ def main():
                 zmq_sock.send_multipart([topic.encode(), msgpack.packb(parsed, use_bin_type=True)])
 
         logger.info("Sending records took %f seconds" % (time.time() - last_time))
-        last_time = time.time()
 
     except Exception as e:
-        failed = True
         logger.error("Exception thrown: %s" % e)
         e_type, e_value, e_traceback = sys.exc_info()
         logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
-
-    # publish whether the rules are applied
-    try:
-        publish_result(parsed, test_rule_id, failed)
-    except Exception as e:
-        e_type, e_value, e_traceback = sys.exc_info()
-        logger.error("error during rule test: %s" % e)
-        e_type, e_value, e_traceback = sys.exc_info()
-        logger.error("Exception traceback: %s" % str(traceback.extract_tb(e_traceback)))
-
-    # try to send the testing packet
-    send_test_packet(test_ip)
 
 
 if __name__ == '__main__':
