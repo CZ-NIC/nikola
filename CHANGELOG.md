@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2020-06-10
+### Added
+- Command line arguments:
+  - `--dont-rotate`
+  - `--dont-send`
+  - `--log-parsed`
+  - `--json-log`
+
+### Removed
+- Old unused ucollect tests
+
+
 ## [3.0.1] - 2020-06-10
 ### Fixed
 - `direction` parsing
