@@ -28,62 +28,16 @@ import traceback
 import zmq
 import msgpack
 
-from nikola.logger import get_logger
-from nikola.syslog_parser import parse_syslog
+from .argparser import get_arg_parser
+from .logger import get_logger
+from .syslog_parser import parse_syslog
 
 
 logger = None
 
 
 def main():
-
-    # Parse the command line options
-    parser = argparse.ArgumentParser(prog="nikola")
-    parser.add_argument(
-        "-s", "--socket", dest='socket_path', default='ipc:///tmp/sentinel_pull.sock',
-        type=str, help='set the socket path'
-    )
-
-    parser.add_argument(
-        "-T", "--topic", dest='topic', default='sentinel/collect/fwlogs',
-        type=str, help='topic'
-    )
-
-    parser.add_argument(
-        "-l", "--log-file", dest='syslog_file', default='/var/log/iptables', type=str,
-        help='specify the syslog file to be parsed'
-    )
-
-    parser.add_argument(
-        "-f", "--date-format", dest='date_format', default='%Y-%m-%dT%H:%M:%S', type=str,
-        help='specify the syslog date format'
-    )
-
-    parser.add_argument(
-        "-r", "--log-rotate-conf", dest='logrotate_conf', default='/etc/logrotate.d/iptables',
-        type=str, help='specify the log rotate config to be triggered'
-    )
-
-    parser.add_argument(
-        "-d", "--debug", dest='debug', action='store_true', default=False,
-        help='use debug output'
-    )
-
-    parser.add_argument(
-        "-w", "--wan-interfaces", dest='wans', default=None, type=str,
-        help='comma separated list of wan interfaces'
-    )
-
-    parser.add_argument(
-        "-n", "--now", dest='now', action='store_true', default=True,
-        help='don\'t use random sleep interval (this is default behavior)'
-    )
-
-    parser.add_argument(
-        "--random-sleep", dest='now', action='store_false', default=True,
-        help='Use random sleep interval'
-    )
-
+    parser = get_arg_parser()
     options = parser.parse_args()
 
     global logger
