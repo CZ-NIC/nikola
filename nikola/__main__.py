@@ -68,6 +68,9 @@ def main():
             parsed = parse_syslog(syslog_file, syslog_date_format, logger=logger)
             logger.info("Syslog parsing took %f seconds" % (time.time() - last_time))
 
+        else:
+            logger.warn("Requested syslog file {} not found".format(syslog_file))
+
         logger.info(("Records parsed: %d" % len(parsed)))
 
         if options.log_parsed:
