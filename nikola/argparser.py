@@ -49,6 +49,27 @@ def get_arg_parser():
     )
 
     parser.add_argument(
+        "--dont-rotate", action='store_true',
+        help='do not log rotate the syslog file - only for debug purposes, this '
+             'option would cause sending duplicit data on normal setup'
+    )
+
+    parser.add_argument(
+        "--dont-send", action='store_true',
+        help='do not send the data to proxy zmq socket - only for debug purposes'
+    )
+
+    parser.add_argument(
+        "--log-parsed", action='store_true',
+        help='log parsed data using debug output'
+    )
+
+    parser.add_argument(
+        "--json-log", action='store_true',
+        help='use pretty json format for --log-parsed'
+    )
+
+    parser.add_argument(
         "-d", "--debug", dest='debug', action='store_true', default=False,
         help='use debug output'
     )
