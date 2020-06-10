@@ -91,11 +91,10 @@ def _parse_line(line, date_format, logger=None, **kwargs):
     splitted = rest.split(': ', 1)
     if len(splitted) != 2:
         return None
-    prefix = splitted[0].rsplit(' ', 1)[1]
-    direction = prefix[2]
 
+    direction = splitted[0].rsplit(' ', 1)[1]
     if direction != "in":
-        return
+        return None
 
     # Parse the rest
     parsed = {}
