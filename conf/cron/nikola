@@ -1,2 +1,2 @@
 MAILTO=""
-*/15 * * * * root /usr/bin/nikola --random-sleep
+*/15 * * * * root /bin/sh -c "source /lib/functions/sentinel.sh; allowed_to_run "nikola" && exec /usr/bin/nikola --random-sleep"
