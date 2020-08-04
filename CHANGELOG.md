@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python package renamed from `nikola` to `sentinel_nikola`
 - Cron now runs shell script that checks if EULA was approved as well as if Nikola
   is enabled before running it.
+- Syslog-ng now filters packets with DROP fate as well as REJECT
 
 ## [3.1.0] - 2020-06-10
 ### Added
