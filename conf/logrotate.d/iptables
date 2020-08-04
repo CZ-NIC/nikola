@@ -5,7 +5,7 @@
 	hourly
 	maxsize 10M
 	postrotate
-		/etc/init.d/syslog-ng restart
+		/etc/init.d/syslog-ng reload
 	endscript
 	rotate 1
 }

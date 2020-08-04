@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Crash when syslog-ng was restarted by Nikola and log was send to it by Nikola
+
 ### Changed
 - Executable renamed from `nikola` to `sentinel-nikola`
 - Python package renamed from `nikola` to `sentinel_nikola`
