@@ -20,22 +20,22 @@
 
 from setuptools import setup
 
-from nikola import __version__
+from sentinel_nikola import __version__
 
 
 setup(
-    name='nikola',
+    name='sentinel-nikola',
     version=__version__,
     author='CZ.NIC, z.s.p.o. (http://www.nic.cz/)',
-    author_email='stepan.henek@nic.cz',
-    packages=['nikola', ],
+    author_email='packaging@turris.cz',
+    packages=['sentinel_nikola', ],
     url='https://gitlab.labs.nic.cz/turris/nikola',
     license='GPLv3+',
-    description='nikola package for TurrisOS',
+    description='Sentinel Nikola package for TurrisOS',
     long_description=open('README.txt').read(),
     entry_points={
         "console_scripts": [
-            "nikola = nikola.__main__:main",
+            "sentinel-nikola = sentinel_nikola.__main__:main",
         ]
     },
     zip_safe=False,

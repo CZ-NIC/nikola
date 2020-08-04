@@ -24,7 +24,7 @@ import logging.handlers
 def get_logger(debug=False):
 
     # get logger name
-    logger = logging.getLogger("nikola")
+    logger = logging.getLogger("sentinel_nikola")
 
     # add syslog handler
     sys_handler = logging.handlers.SysLogHandler(address="/dev/log")

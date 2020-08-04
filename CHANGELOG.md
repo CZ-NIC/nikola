@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Executable renamed from `nikola` to `sentinel-nikola`
+- Python package renamed from `nikola` to `sentinel_nikola`
 - Cron now runs shell script that checks if EULA was approved as well as if Nikola
   is enabled before running it.
 

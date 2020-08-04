@@ -22,7 +22,7 @@ import argparse
 
 
 def get_arg_parser():
-    parser = argparse.ArgumentParser(prog="nikola")
+    parser = argparse.ArgumentParser(prog="sentinel-nikola")
     parser.add_argument(
         "-s", "--socket", dest='socket_path', default='ipc:///tmp/sentinel_pull.sock',
         type=str, help='set the socket path'

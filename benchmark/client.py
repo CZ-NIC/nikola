@@ -9,7 +9,7 @@ import zlib
 
 from datetime import datetime
 
-from nikola.syslog_parser import parse_syslog
+from sentinel_nikola.syslog_parser import parse_syslog
 from generators import ConfigError, PacketGenerator
 from rpc_wrapper import WrappedServer
 

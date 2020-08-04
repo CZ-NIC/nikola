@@ -18,7 +18,7 @@
 
 import atsha_fake
 
-from nikola.jsonrpclib import Server
+from sentinel_nikola.jsonrpclib import Server
 
 RANDOM_LEN = 32
 
