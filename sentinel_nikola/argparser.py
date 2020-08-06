@@ -44,7 +44,8 @@ def get_arg_parser():
     )
 
     parser.add_argument(
-        "-r", "--log-rotate-conf", dest='logrotate_conf', default='/etc/logrotate.d/iptables',
+        "-r", "--log-rotate-conf", dest='logrotate_conf',
+        default='/etc/logrotate.d/sentinel-nikola-iptables.conf',
         type=str, help='specify the log rotate config to be triggered'
     )
 
